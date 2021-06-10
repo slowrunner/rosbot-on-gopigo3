@@ -71,7 +71,7 @@ ROSbot Specs:
   * 
 
 - Physical:
-  * 41.5 Ounces Total
+  * X.X Ounces Total
   * 6" wide x 9" Long x 12" High
 
 - First "Life": June 2021 
