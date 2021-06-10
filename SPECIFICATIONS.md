@@ -1,12 +1,15 @@
 Feature / Bot	GoPiGo3 “ROSbot”
-
-Motors	Quantity 2
-6v Gear Reduction (1:120) motors
-? 4500 mg-cm at 6v  
-drive() batt. load: ~330mA at 9.5v 
-Speed	2.6 in/sec at 120 DPS
-3.25 in/sec 82.6mm at 150 DPS (myconfig)
-6.4 in/sec at 300 DPS (default),          est.  1.1m/s max acceleration 7.7  in/sec at 360 DPS (max for  straight travel)
+| --- | --- |
+| Motors | Quantity 2 |
+| | 6v Gear Reduction (1:120) motors |
+| | 4500 mg-cm at 6v |  
+| | drive() batt. load: ~330mA at 9.5v |
+ 
+| Speed | 2.6 in/sec at 120 DPS |
+| | 3.25 in/sec 82.6mm at 150 DPS |
+| | 6.4 in/sec at 300 DPS (default)|
+| | 1.1m/s max acceleration |
+| | 7.7  in/sec 0.2m/s at 360 DPS (max for  straight travel) |
 
 Supply Circuit	Rohm DC/DC Buck BD9D320EFJ  4.5-18v input
 5v (variable) 3A
