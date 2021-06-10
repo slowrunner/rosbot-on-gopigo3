@@ -1,31 +1,25 @@
 Feature / Bot	GoPiGo3 “ROSbot”
+
+| Feature | Detail |
 | --- | --- |
 | Motors | Quantity 2 |
 | | 6v Gear Reduction (1:120) motors |
 | | 4500 mg-cm at 6v |  
-| | drive() batt. load: ~330mA at 9.5v |
- 
+| | drive() batt. load: ~330mA at 9.5v | 
 | Speed | 2.6 in/sec at 120 DPS |
 | | 3.25 in/sec 82.6mm at 150 DPS |
 | | 6.4 in/sec at 300 DPS (default)|
-| | 1.1m/s max acceleration |
-| | 7.7  in/sec 0.2m/s at 360 DPS (max for  straight travel) |
-
-Supply Circuit	Rohm DC/DC Buck BD9D320EFJ  4.5-18v input
-5v (variable) 3A
-
-Tires	2.6”  (66.5mm) 
-
-Size	Robot ROSbot:  9 L x 5 W x 7 H
-(GoPiGo3:    9 L x 5 W x 3.5 H)
-
-Chassis Shape	Three Layer Rectangle
-
-Weight	Full up: X.x lbs  
-(GoPiGo3 w/batts = 1.2 lbs)
-
-Min Turning Radius	14cm 5.5 inch spin radius
-"Axle" center to rear corners
+| | 43 in/sec (1.1m/s) max acceleration |
+| | 7.7  in/sec (0.2m/s) at 360 DPS (max for  straight travel) |
+| Supply Circuit |Rohm DC/DC Buck BD9D320EFJ |
+| | 4.5-18v input |
+| | 5v 3A |
+| Tires	| 2.6” 66.5mm | 
+| Robot Dimensions | 9 L x 5 W x 7 H |
+| Chassis Shape	| Three Layer Rectangle|
+| Weight | X.x lbs |
+| Min Turning Radius | 14cm 5.5 inch |
+| | "Axle" center to rear corners |
 
 19cm 7.5 inch orbit radius
 Wheel center to opp. rear corner 
