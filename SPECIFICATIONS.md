@@ -20,40 +20,34 @@ Feature / Bot	GoPiGo3 “ROSbot”
 | Weight | X.x lbs |
 | Min Turning Radius | 14cm 5.5 inch |
 | | "Axle" center to rear corners |
-
-19cm 7.5 inch orbit radius
-Wheel center to opp. rear corner 
-
-Using WDia,WBase	64.0 (2.5")  114.05 mm (4.5")
-	
-“Grove” Analog / Digital / PWM :     (A2D 0-5v 12bit 1.2mV resolution)	Grove Connector: 
-1-A: pin 1 (default)
-1-B: pin 2
-2-A: pin 1 (default)
-2-B: pin 2
-pin 3: VCC 5v
-pin 4: GND 
-
-Serial Port	1 level converted port: unused
-
-Servo Ports	2 ports: 1) pan  2) unused
-
-Motor Driver	Dual TB6612FNG Dual 1.2A 15v max
-
-I2C 
-(I2C ports are parallel wired -interchangeable)	2x “Grove” HW I2C ports: 
-    (level converted) 
-    “1”) DI Distance Sensor  
-    “2”) unused
-
-Roller	(Original metal ball replaced with:) 
-3/4” Pololu plastic ball castor wheel
-
-Power Switch	Push/Push
-
-Pan	TowerPro SG90 Micro Servo
-
-Sensors:	
+| | 19cm 7.5 inch orbit radius |
+| | Wheel center to opp. rear corner |
+| Using WDia,WBase | 64.0 (2.5")  114.05 mm (4.5") |	
+| “Grove” Analog / Digital / PWM | Grove Connector: |
+| (A2D 0-5v 12bit 1.2mV resolution) | |
+| 1-A: | pin 1 (default) |
+| 1-B: | pin 2 |
+| 2-A: | pin 1 (default) |
+| 2-B: | pin 2 |
+| pin 3: |  VCC 5v |
+| pin 4: | GND |
+| | |
+| Serial Port | unused |
+| level converted | |
+|Servo Ports | 1) pan  2) unused |
+| | |
+| Motor Driver | Dual TB6612FNG| 
+| | Dual 1.2A 15v max |
+| I2C | Parallel wired -interchangeable |
+| | 2x “Grove” HW I2C ports | 
+| | (level converted) |
+| | “1”) DI Distance Sensor | 
+| | “2”) unused |
+| Castor | 3/4” Pololu plastic ball |
+| Power Switch	| Push/Push |
+| Pan | TowerPro SG90 Micro Servo |
+| | |
+| Sensors: | |
 
    Battery V	12bit intrinsic float, 16:1 div, 
 8.6mV precision, 70mv variation
