@@ -7,8 +7,10 @@
 #  WARNING - WARNING Since the battery will yank the power without warning
 #                    SD card corruption is possible (not probable, but possible)
 #
-#      Note: actual battery voltages are 0.6v to 0.65v higher than GoPiGo3 reading
-#
+#      Note: Actual battery voltages are 0.6v to 0.8v higher than GoPiGo3 reading
+#            due to the voltage drop of the GoPiGo3's reverse polarity protection diode
+
+
 import sys
 import time
 import signal
