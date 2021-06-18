@@ -111,6 +111,7 @@ def main():
             warning_led_on = True
             leds.wifi_blinker_on(egpg,color=leds.ORANGE)
         if (batteryLowCount > 3):
+          vBatt,_ = battery.vBatt_vReading(egpg)
           print ("WARNING, WARNING, SHUTTING DOWN NOW")
           print ("BATTERY %.2f volts BATTERY LOW - SHUTTING DOWN NOW" % vBatt)
           egpg.reset_all()

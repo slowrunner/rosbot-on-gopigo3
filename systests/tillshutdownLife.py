@@ -1,18 +1,13 @@
 #!/usr/bin/python3
 #
-# measureLife.py     Controlled Battery Life Measurement
-#      Run Battery down while printing status every 10 seconds
+# tillshutdownLife.py     Battery Protection Cirucuit Cut-out Life Measurement
+#      Run Battery down (from battery protection charge to full battery protection discharge
+#      while printing status every 10 seconds to command line
 #
-#      This test will loop reading the battery voltage
-#        UNTIL voltage stays below 7.4v 4 times,
-#        then will force a shutdown.
+#  WARNING - WARNING Since the battery will yank the power without warning
+#                    SD card corruption is possible (not probable, but possible)
 #
-#      Note: actual battery voltage is 0.6v higher than reading
-#            7.4v reading limit reliably gives time for orderly shutdown 
-#
-# 2019-03-25: changed to use volt() instead of get_voltage_battery()
-#             which read 0.1 lower than egpg.volt()
-#      
+#      Note: actual battery voltages are 0.6v to 0.65v higher than GoPiGo3 reading
 #
 import sys
 import time
@@ -22,7 +17,34 @@ from datetime import datetime
 
 import easygopigo3
 
-LOW_BATTERY_V = 8.4   # (9.75-0.6 = 3cells x 3.25v ~7% reserve)
+
+REV_PROTECT_DIODE = 0.65    # The GoPiGo3 has a reverse polarity protection diode drop of approximately 0.65v
+WARNING_LOW_vBatt = 9.75       # Give Advance Warning battery is around "the knee"
+SAFETY_SHUTDOWN_vBatt = 9.15   # Battery Discharge Protection Circuit allows down to 8.15v
+
+# Uncomment the next line to disable software safety shutdown - WARNING this is living risky WARNING
+SAFETY_SHUTDOWN_vBatt = 0   # Allow to run until Battery Discharge Protection circuit jerks the power off
+
+# Return (approx) battery voltage and the actual GoPiGo3 voltage reading
+def vBatt_vReading(egpg):
+	vReading = egpg.volt()
+	vBatt = vReading + REV_PROTECT_DIODE
+	return vBatt,vReading
+
+# Return a formatted string with the approx battery voltage and the actual GoPiGo3 reading
+def voltages_string(egpg):
+        vBatt, vReading = vBatt_vReading(egpg)
+        return "Current Battery {:.2f}v EasyGoPiGo3 Reading {:.2f}v".format(vBatt,vReading)
+
+# Return True if battery is below "safe shutdown voltage"
+def too_low(egpg):
+	vBatt, _ = vBatt_vReading(egpg)
+	return vBatt < SAFETY_SHUTDOWN_vBatt
+
+# Return True if battery is operating past "the knee" in the discharge curve
+def on_last_leg(egpg):
+	vBatt, _ = vBatt_vReading(egpg)
+	return vBatt < WARNING_LOW_vBatt
 
 # Return CPU temperature as a character string
 def getCPUtemperature():
@@ -53,8 +75,9 @@ def printStatus():
 
   print("\n********* ROSbot Basic STATUS *****")
   print(datetime.now().date(), getUptime())
-  vBatt = egpg.volt()  #egpg.get_voltage_battery()
-  print("Battery Voltage: %0.2f" % vBatt)
+  print(voltages_string(egpg))
+  if on_last_leg(egpg):
+     print("WARNING - Battery Is Nearing Shutdown Voltage")
   v5V = egpg.get_voltage_5v()
   print("5v Supply: %0.2f" % v5V)
   print("Processor Temp: %s" % getCPUtemperature())
@@ -97,20 +120,21 @@ def main():
   # #### Create instance of GoPiGo3 base class 
   egpg = easygopigo3.EasyGoPiGo3(use_mutex=True)
   batteryLowCount = 0
+
   #print ("Starting status loop at %.2f volts" % battery.volts())  
   try:
     while True:
         printStatus()
-        vBatt = egpg.volt()
-        if (vBatt < LOW_BATTERY_V): 
+        if (too_low(egpg):
             batteryLowCount += 1
         else: batteryLowCount = 0
         if (batteryLowCount > 3):
+          vBatt,_ = vBatt_vReading(egpg)
           print ("WARNING, WARNING, SHUTTING DOWN NOW")
           print ("BATTERY %.2f volts BATTERY LOW - SHUTTING DOWN NOW" % vBatt)
           egpg.reset_all()
           time.sleep(1)
-          os.system("sudo shutdown -h now")
+          os.system("sudo shutdown -h +2")
           sys.exit(0)
         time.sleep(10)    # check battery status every 10 seconds
                           # important to make four checks low V quickly      
