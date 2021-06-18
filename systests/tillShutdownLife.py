@@ -17,8 +17,7 @@ from datetime import datetime
 
 import easygopigo3
 
-
-REV_PROTECT_DIODE = 0.65    # The GoPiGo3 has a reverse polarity protection diode drop of approximately 0.65v
+REV_PROTECT_DIODE = 0.81    # The GoPiGo3 has a reverse polarity protection diode drop of 0.6v to 0.8v (n=2)
 WARNING_LOW_vBatt = 9.75       # Give Advance Warning battery is around "the knee"
 SAFETY_SHUTDOWN_vBatt = 9.15   # Battery Discharge Protection Circuit allows down to 8.15v
 
@@ -125,7 +124,7 @@ def main():
   try:
     while True:
         printStatus()
-        if (too_low(egpg):
+        if (too_low(egpg)):
             batteryLowCount += 1
         else: batteryLowCount = 0
         if (batteryLowCount > 3):
