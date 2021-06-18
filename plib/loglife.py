@@ -11,11 +11,13 @@
 
 import time
 import sys
+sys.path.insert(1,"/home/pi/rosbot-on-gopigo3/plib/")
 import multiprocessing
 import logging
 import traceback
 import signal
-
+from noinit_easygopigo3 import EasyGoPiGo3
+import battery
 
 # create logger
 logger = logging.getLogger('lifelog')
@@ -78,6 +80,9 @@ class digitalEntity():
     logger.info("------------ boot ------------")
     if debugLevel: print("%s.dEmain started with tSleep=%f" % (myname,tSleep))
     # logger.info('%s.dEmain started',myname)
+    egpg = EasyGoPiGo3(use_mutex=True,noinit=True)
+    logger.info(battery.voltages_string(egpg))
+    del egpg
     i=0
     while True:
         time.sleep(tSleep)

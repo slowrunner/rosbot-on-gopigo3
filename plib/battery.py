@@ -35,7 +35,6 @@ def on_last_leg(egpg):
 
 
 def testMain():
-	print("battery.testMain starting")
 	egpg = EasyGoPiGo3(use_mutex=True, noinit=True)
 	print(voltages_string(egpg))
 

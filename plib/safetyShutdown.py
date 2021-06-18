@@ -18,17 +18,11 @@ import signal
 import os
 from datetime import datetime
 
-sys.path.append("/home/pi/rosbot-on-gopigo3/plib")
-import easygopigo3
-import myconfig
+sys.path.insert(1,"/home/pi/rosbot-on-gopigo3/plib")
+from noinit_easygopigo3 import EasyGoPiGo3
+import battery
 import leds
 
-
-LOW_BATTERY_V = 9.15   # (9.15-0.65 = 3cells x 3.05v ~7% reserve)
-# LOW_BATTERY_V = 12.0   # TEST TEST TEST
-REV_PROTECT_DIODE_DROP = 0.65
-LOW_READING_V = LOW_BATTERY_V - REV_PROTECT_DIODE_DROP
-WARNING_LED_V = LOW_READING_V + 0.25
 
 # Return CPU temperature as a character string
 def getCPUtemperature():
@@ -59,8 +53,9 @@ def printStatus():
 
   print("\n********* ROSbot safetyShutdown STATUS *****")
   print(datetime.now().date(), getUptime())
-  vBatt = egpg.volt()  #egpg.get_voltage_battery()
-  print("Battery Voltage: %0.2f" % vBatt)
+  print(battery.voltages_string(egpg))
+  if battery.on_last_leg(egpg):
+    print("WARNING - Battery Is Low")
   v5V = egpg.get_voltage_5v()
   print("5v Supply: %0.2f" % v5V)
   print("Processor Temp: %s" % getCPUtemperature())
@@ -101,8 +96,7 @@ def main():
   set_cntl_c_handler(handle_ctlc)
 
   # #### Create instance of GoPiGo3 base class 
-  egpg = easygopigo3.EasyGoPiGo3(use_mutex=True)
-  myconfig.setParameters(egpg,verbose=True)
+  egpg = EasyGoPiGo3(use_mutex=True,noinit=True)
 
   batteryLowCount = 0
   warning_led_on = False
@@ -110,11 +104,10 @@ def main():
   try:
     while True:
         printStatus()
-        vBatt = egpg.volt()
-        if (vBatt < LOW_READING_V):
+        if (battery.too_low(egpg)):
             batteryLowCount += 1
         else: batteryLowCount = 0
-        if (warning_led_on == False) and (vBatt < WARNING_LED_V):
+        if (warning_led_on == False) and battery.on_last_leg(egpg):
             warning_led_on = True
             leds.wifi_blinker_on(egpg,color=leds.ORANGE)
         if (batteryLowCount > 3):
@@ -125,7 +118,7 @@ def main():
           os.system("/home/pi/rosbot-on-gopigo3/logMaintenance.py 'SAFETY SHUTDOWN - BATTERY LOW'")
           time.sleep(1)
           # os.system("sudo shutdown +10")   # for testing
-          os.system("sudo shutdown -h now")
+          os.system("sudo shutdown -h +2")
           sys.exit(0)
         time.sleep(10)    # check battery status every 10 seconds
                           # important to make four checks low V quickly
