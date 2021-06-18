@@ -72,7 +72,7 @@ def getUptime():
 def printStatus():
   global egpg
 
-  print("\n********* ROSbot Basic STATUS *****")
+  print("\n********* ROSbot tillShutdownLife.py STATUS *****")
   print(datetime.now().date(), getUptime())
   print(voltages_string(egpg))
   if on_last_leg(egpg):
