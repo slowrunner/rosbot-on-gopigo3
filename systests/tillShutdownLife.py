@@ -20,9 +20,7 @@ import easygopigo3
 REV_PROTECT_DIODE = 0.81    # The GoPiGo3 has a reverse polarity protection diode drop of 0.6v to 0.8v (n=2)
 WARNING_LOW_vBatt = 9.75       # Give Advance Warning battery is around "the knee"
 SAFETY_SHUTDOWN_vBatt = 9.15   # Battery Discharge Protection Circuit allows down to 8.15v
-
-# Uncomment the next line to disable software safety shutdown - WARNING this is living risky WARNING
-SAFETY_SHUTDOWN_vBatt = 0   # Allow to run until Battery Discharge Protection circuit jerks the power off
+IGNORE_TOO_LOW = True
 
 # Return (approx) battery voltage and the actual GoPiGo3 voltage reading
 def vBatt_vReading(egpg):
@@ -75,8 +73,10 @@ def printStatus():
   print("\n********* ROSbot tillShutdownLife.py STATUS *****")
   print(datetime.now().date(), getUptime())
   print(voltages_string(egpg))
-  if on_last_leg(egpg):
-     print("WARNING - Battery Is Nearing Shutdown Voltage")
+  if too_low(egpg):
+     print("WARNING - BATTERY IS TOO LOW")
+  elif on_last_leg(egpg):
+         print("WARNING - Battery Is Nearing Shutdown Voltage")
   v5V = egpg.get_voltage_5v()
   print("5v Supply: %0.2f" % v5V)
   print("Processor Temp: %s" % getCPUtemperature())
@@ -124,7 +124,7 @@ def main():
   try:
     while True:
         printStatus()
-        if (too_low(egpg)):
+        if ((IGNORE_TOO_LOW != True) and too_low(egpg)):
             batteryLowCount += 1
         else: batteryLowCount = 0
         if (batteryLowCount > 3):
