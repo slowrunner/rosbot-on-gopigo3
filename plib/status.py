@@ -34,7 +34,7 @@
 # IMPORTS
 import sys
 sys.path
-sys.path.append('/home/pi/rosbot-on-gopigo3/plib')
+sys.path.insert(1,'/home/pi/rosbot-on-gopigo3/plib')
 import time
 import signal
 import os
@@ -42,16 +42,14 @@ import myPyLib
 # import speak
 import myconfig
 from datetime import datetime
-import easygopigo3
-# import battery
+from noinit_easygopigo3 import EasyGoPiGo3
+import battery
 # import myDistSensor
 import lifeLog
 import runLog
 import argparse
 # from my_safe_inertial_measurement_unit import SafeIMUSensor
 import rosbotDataJson as rosbotData
-
-REV_PROTECT_DIODE = 0.65
 
 # Return CPU temperature as a character string
 def getCPUtemperature():
@@ -92,9 +90,9 @@ def getRoomTemp(imu):
 def printStatus(egpg, ds):
     print("\n********* ROSbot STATUS *****")
     print("{} {}".format(datetime.now().date(), getUptime()))
-    vReading = egpg.volt()  # use thread-safe version not get_battery_voltage
-    vBatt = vReading+REV_PROTECT_DIODE  # use thread-safe version not get_battery_voltage
-    print("Battery Voltage: {:0.2f}v   GoPiGo3 Reading: {:0.2f}v".format(vBatt,vReading))
+    print(battery.voltages_string(egpg))
+    if battery.on_last_leg(egpg):
+        print("WARNING - Battery Is Nearing Shutdown Voltage")
     v5V = egpg.get_voltage_5v()
     print("5v Supply: %0.2f" % v5V)
     print("Processor Temp: %s" % getCPUtemperature())
@@ -124,8 +122,8 @@ def main():
     myPyLib.set_cntl_c_handler(handle_ctlc)
 
     # #### Create a mutex protected instance of EasyGoPiGo3 base class
-    egpg = easygopigo3.EasyGoPiGo3(use_mutex=True)
-    myconfig.setParameters(egpg)
+    egpg = EasyGoPiGo3(use_mutex=True,noinit=True)
+    # myconfig.setParameters(egpg)
     # egpg.imu = SafeIMUSensor(port = "AD1", use_mutex = True, init = False)
 
 
@@ -146,13 +144,9 @@ def main():
     else:
         ds = None
 
-    vReading = egpg.volt()  # use thread-safe version not get_battery_voltage
-    vBatt = vReading+REV_PROTECT_DIODE  # use thread-safe version not get_battery_voltage
-    strStart = "Starting status.py at vBatt: {:0.2f}v GoPiGo3 reading: {:0.2f}v".format(vBatt,vReading)
-
-    print(strStart)
     if loopFlag:
         # runLog.logger.info(strStart)
+        strStart = "Starting status.py - "+battery.voltages_string(egpg)
         runLog.entry(strStart)
 
     # print ("Starting status loop at %.2f volts" % battery.volts())
@@ -165,9 +159,7 @@ def main():
                 break
         # end while
     except SystemExit:
-        vReading = egpg.volt()  # use thread-safe version not get_battery_voltage
-        vBatt = vReading+REV_PROTECT_DIODE  # use thread-safe version not get_battery_voltage
-        strToLog = "Exiting status.py at vBatt: {:0.2f}v GoPiGo3 reading: {:0.2f}v".format(vBatt,vReading)
+        strToLog = "Exiting status.py - "+battery.voltages_string(egpg)
 
         if loopFlag:
             # runLog.logger.info(strToLog)
