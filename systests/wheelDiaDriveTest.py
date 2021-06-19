@@ -48,7 +48,7 @@ egpg = easygopigo3.EasyGoPiGo3(use_mutex = True)
 ps   = egpg.init_servo()   # initialize "SERVO1"
 
 if ROSbot:
-    runLog.logger.info("Started")
+    runLog.logger.info("wheelDiaDriveTest Started")
     myconfig.setParameters(egpg,verbose=True)   # configure custom wheel dia and base
 
 ps.rotate_servo(90)
