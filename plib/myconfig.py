@@ -16,7 +16,7 @@ from math import pi
 
 
 # Wheel Dia and Wheel Base for ROSbot
-WHEEL_DIAMETER    = 67.0
+WHEEL_DIAMETER    = 66.77
 WHEEL_BASE_WIDTH  = 112.0
 ACCURACY_SPEED      = 150    # speed for most accurate spin turns
 ENCODER_TICKS_PER_ROTATION = 16  # MAGIC NUMBER TO MAKE NEW GOPIGO3 KIT WORK

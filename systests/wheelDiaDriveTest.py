@@ -8,17 +8,17 @@
 # Test Variables:
 #   distance to drive (21.0 inches)  - change with dNN.N command
 #   drive_speed (120 DPS)            - change with sNNN command
-#   wheel diameter (63.7-63.975mm makes my bot very accurate, repeatably)  - change by entering NN.N at prompt
+#   wheel diameter (66.77 mm makes my bot very accurate, repeatably)  - change by entering NN.N at prompt
 #   check_motor_status(False)  will change to non-blocking drive and check left and right motor status - "c"
 #   ranging_active(False)  will perform read_inches() during each check motor status loop  - "r" 
-#   num_tries (1)  -change with xN
+#   num_tries (1)  -change with xN  x2 will drive forward then back to starting point
 #
 #  Operation:  Return executes once, ? gives help
 #
 #  Results:
-#     "Uncalibrated": -4% error with 0.2% repeatability (-2.75 inch error with 1/8 inch repeatability)
-#     "Calibration" via wheel diameter adjustment: 0.2% drive-to-drive accuracy  (1/8 inch error in 5 feet travel)
-#                   and 0.8% session, and session-to-session accuracy (1/2 inch error in 5 feet travel)
+#     "Uncalibrated": 0.4% error (+0.25 inch error)
+#     "Calibration" via wheel diameter adjustment: 0.1% drive-to-drive accuracy  (1/16 inch error in 5 feet travel)
+#                   and 0.?% session, and session-to-session accuracy (? inch error in 5 feet travel)
 #
 '''
 
@@ -51,7 +51,7 @@ if ROSbot:
     runLog.logger.info("Started")
     myconfig.setParameters(egpg,verbose=True)   # configure custom wheel dia and base
 
-ps.rotate_servo(0)
+ps.rotate_servo(90)
 time.sleep(0.5)
 egpg.set_servo(egpg.SERVO_1,0)   # turn servo off to conserve energy
 
