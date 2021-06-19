@@ -1,15 +1,16 @@
 #!/usr/bin/python3
 #
-# safetyShutdown.py     SAFELY SHUTDOWN AT BATTERY:9.15v READING:8.5v
+# safetyShutdown.py     SAFELY SHUTDOWN AT BATTERY 
 #
 #      Loop reading the battery voltage
 #        UNTIL voltage stays below LOW_BATTERY_V 4 times,
 #        then will force a shutdown.
 #
-#      Will start wifi led blinking orange 0.25v before safety shutdown voltage
+#      Will start wifi led blinking orange ~15 minutes before safety shutdown is executed
+#      when battery.SAFETY_SHUTDOWN_vBatt is 9.75v and battery.WARNING_LOW_vBatt is 10.0v
 #
-#      Note: actual battery voltage is 0.65v higher than reading
-#            due to reverse polarity protection diode
+#      Note: Program prints actual battery voltage which is 0.81v higher than GoPiGo3 reading
+#            due to reverse polarity protection diode, wires, and connections
 #
 
 import sys
@@ -54,8 +55,10 @@ def printStatus():
   print("\n********* ROSbot safetyShutdown STATUS *****")
   print(datetime.now().date(), getUptime())
   print(battery.voltages_string(egpg))
-  if battery.on_last_leg(egpg):
-    print("WARNING - Battery Is Low")
+  if battery.too_low(egpg):
+     print("WARNING - BATTERY IS TOO LOW")
+  elif battery.on_last_leg(egpg):
+         print("WARNING - Battery Is Nearing Shutdown Voltage")
   v5V = egpg.get_voltage_5v()
   print("5v Supply: %0.2f" % v5V)
   print("Processor Temp: %s" % getCPUtemperature())
