@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 #
-# tillshutdownLife.py     Battery Protection Cirucuit Cut-out Life Measurement
-#      Run Battery down (from battery protection charge to full battery protection discharge
-#      while printing status every 10 seconds to command line
+# FILE: tillshutdownLife.py     Battery Protection Cirucuit Cut-out Life Measurement
+# 
+# PURPOSE:     Run Battery down (from battery protection charge to full battery protection discharge
+#              while printing status every 10 seconds to command line
 #
-#  WARNING - WARNING Since the battery will yank the power without warning
-#                    SD card corruption is possible (not probable, but possible)
+# WARNING - WARNING Since the battery will yank the power without warning
+#                   SD card corruption is possible (not probable, but possible)
 #
 #      Note: Actual battery voltages are 0.6v to 0.8v higher than GoPiGo3 reading
-#            due to the voltage drop of the GoPiGo3's reverse polarity protection diode
+#            due to the voltage drop of the GoPiGo3's reverse polarity protection diode, wires and connectors
 
 
 import sys
@@ -20,9 +21,9 @@ from datetime import datetime
 import easygopigo3
 
 REV_PROTECT_DIODE = 0.81    # The GoPiGo3 has a reverse polarity protection diode drop of 0.6v to 0.8v (n=2)
-WARNING_LOW_vBatt = 9.75       # Give Advance Warning battery is around "the knee"
-SAFETY_SHUTDOWN_vBatt = 9.15   # Battery Discharge Protection Circuit allows down to 8.15v
-IGNORE_TOO_LOW = True
+WARNING_LOW_vBatt = 10.0       # Give Advance Warning battery is around "the knee" (~20 minutes to safety shutdown vBatt )
+SAFETY_SHUTDOWN_vBatt = 9.75   # Battery Discharge Protection Circuit allows down to 8.15v (~15 minutes reserve at 9.75v)
+IGNORE_TOO_LOW = True          # Set False to test shutdown at SAFETY_SHUTDOWN_vBatt instead of running till battery fully discharged
 
 # Return (approx) battery voltage and the actual GoPiGo3 voltage reading
 def vBatt_vReading(egpg):
