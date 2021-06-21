@@ -17,8 +17,8 @@ from math import pi
 
 # Wheel Dia and Wheel Base for ROSbot
 WHEEL_DIAMETER    = 66.77
-WHEEL_BASE_WIDTH  = 112.0
-ACCURACY_SPEED      = 150    # speed for most accurate spin turns
+WHEEL_BASE_WIDTH  = 106.14
+ACCURACY_SPEED      = 150    # calibrated speed for accurate distance and spin turns
 ENCODER_TICKS_PER_ROTATION = 16  # MAGIC NUMBER TO MAKE NEW GOPIGO3 KIT WORK
 
 def setParameters(egpg, wd=WHEEL_DIAMETER, wbw=WHEEL_BASE_WIDTH, spd=ACCURACY_SPEED, etpr=ENCODER_TICKS_PER_ROTATION, verbose=False):

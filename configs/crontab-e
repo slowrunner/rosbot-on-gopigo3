@@ -23,6 +23,7 @@
 # m h  dom mon dow   command
 @reboot sleep 10  && /usr/bin/python3 /home/pi/rosbot-on-gopigo3/cleanlifelog.py
 @reboot sleep 15  && /home/pi/rosbot-on-gopigo3/nohup_loglife.sh
+@reboot sleep 30  && python3 /home/pi/rosbot-on-gopigo3/plib/center.py
 @reboot sleep 60  && /home/pi/rosbot-on-gopigo3/nohup_safetyShutdown.sh
 0 * * * * /usr/bin/python3 /home/pi/rosbot-on-gopigo3/cleanlifelog.py
 
