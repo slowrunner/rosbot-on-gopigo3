@@ -12,19 +12,19 @@ import easygopigo3 # import the GoPiGo3 drivers
 egpg = easygopigo3.EasyGoPiGo3(use_mutex=True) # Create an instance of the GoPiGo3 class. GPG will be the GoPiGo3 object.
 ps = egpg.init_servo()
 
-SERVO_1_CENTER = 1424
+# SERVO_1_CENTER = 1424
 SERVO_1_CENTER_DEG = 85
-SERVO_1_LEFT = 2098    # +674  70 degrees left of center
-SERVO_1_RIGHT = 750    # -674  70 degrees right of center
-SERVO_OFF = 0
+# SERVO_1_LEFT = 2098    # +674  70 degrees left of center
+# SERVO_1_RIGHT = 750    # -674  70 degrees right of center
+# SERVO_OFF = 0
 
 try:
     # GPG.set_servo(GPG.SERVO_1, SERVO_1_CENTER)
-    ps.rotate_servo(SERVO_1_CENTER_DEG)
+    ps.rotate_servo(SERVO_1_CENTER_DEG)    # (from easysensors)
     time.sleep(1)
 
 except KeyboardInterrupt:
-    egpg.set_servo(egpg.SERVO_1, SERVO_1_CENTER)
+    ps.rotate_servo(SERVO_1, SERVO_1_CENTER_DEG)
     time.sleep(1)
 finally:
-    egpg.set_servo(egpg.SERVO_1, SERVO_OFF)        # relax servo
+    ps.disable_servo()        # relax servo (from easysensors)
