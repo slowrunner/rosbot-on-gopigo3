@@ -27,8 +27,8 @@ from easygopigo3 import EasyGoPiGo3
 # GPG will be the GoPiGo3 object.
 egpg = EasyGoPiGo3(use_mutex=True)
 
-egpg.WHEEL_DIAMETER = 67.0
-egpg.WHEEL_BASE_WIDTH = 112.0
+egpg.WHEEL_DIAMETER = 66.77
+egpg.WHEEL_BASE_WIDTH = 106.14    # 106.14
 egpg.WHEEL_BASE_CIRCUMFERENCE = egpg.WHEEL_BASE_WIDTH * math.pi # The circumference of the circle the wheels will trace while turning (mm)
 egpg.WHEEL_CIRCUMFERENCE      = egpg.WHEEL_DIAMETER   * math.pi # The circumference of the wheels (mm)
 egpg.ENCODER_TICKS_PER_ROTATION = 16  # MAGIC NUMBER TO MAKE NEW GOPIGO3 KIT WORK
