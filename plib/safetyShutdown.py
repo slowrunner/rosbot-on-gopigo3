@@ -120,7 +120,7 @@ def main():
           egpg.reset_all()
           time.sleep(1)
           os.system("/home/pi/rosbot-on-gopigo3/logMaintenance.py 'SAFETY SHUTDOWN - BATTERY LOW'")
-          str_log_voltages = "/home/pi/rosbot-on-gopigo3/logMaintenance.py " + battery.voltages_string(egpg)
+          str_log_voltages = "/home/pi/rosbot-on-gopigo3/logMaintenance.py " + " '" + battery.voltages_string(egpg) +"' "
           os.system(str_log_voltages)
           time.sleep(1)
           # os.system("sudo shutdown +10")   # for testing
