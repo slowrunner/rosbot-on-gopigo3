@@ -1,0 +1,11 @@
+#!/bin/bash
+# FILE: /etc/rc.local
+#
+# PURPOSE: DISABLE IPv6
+# Reference: https://itsfoss.com/disable-ipv6-ubuntu-linux/
+
+/etc/sysctl.d
+/etc/init.d/procps restart
+
+exit 0
+
