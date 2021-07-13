@@ -29,7 +29,7 @@ setup(
     entry_points={
         'console_scripts': [
             'distance_sensor = ros2_gopigo3_node.distance_sensor:main',
-
+            'distance_sensor_subscriber = ros2_gopigo3_node.distance_sensor_subscriber:main',
         ],
     },
 )
