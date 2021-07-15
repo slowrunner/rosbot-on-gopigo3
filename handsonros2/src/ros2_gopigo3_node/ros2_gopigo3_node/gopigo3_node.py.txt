@@ -112,10 +112,15 @@ class GoPiGo3Node(Node):
         self.srv_pwr_on = self.create_service(Trigger,  'power/on',    self.power_on)
         self.srv_pwr_off = self.create_service(Trigger, 'power/off',   self.power_off)
 
+        # rate = rclpy.Rate(rclpy.get_param('hz', 30))   # in Hz
+        self.hz = 30   # TODO: this needs to be a parameter
+        period_for_timer = 1.0 / self.hz
+        self.timer = self.create_timer( period_for_timer, self.gopigo3_main_cb)  # call the gopigo3_node's main loop when ROS timer triggers 
+        self.get_logger().info('ros2_gopigo3_node: created main loop callback at {} Hz".format(self.hz))
 
+    # GoPiGo3Node main loop callback
+    def gopigo3_main_cb(self):
 
-        rate = rclpy.Rate(rclpy.get_param('hz', 30))   # in Hz
-        while not rclpy.is_shutdown():
             self.pub_battery.publish(Float64(data=self.g.get_voltage_battery()))
 
             # publish motor status, including encoder value
@@ -136,8 +141,7 @@ class GoPiGo3Node(Node):
             self.pub_odometry.publish(odom)
             self.br.sendTransformMessage(transform)
 
-            rate.sleep()
-
+    def destroy_node(self):
         self.g.reset_all()
         self.g.offset_motor_encoder(self.ML, self.g.get_motor_encoder(self.ML))
         self.g.offset_motor_encoder(self.MR, self.g.get_motor_encoder(self.MR))
@@ -151,6 +155,9 @@ class GoPiGo3Node(Node):
             gpio_export = os.open("/sys/class/gpio/unexport", os.O_WRONLY)
             os.write(gpio_export, self.POWER_PIN.encode())
             os.close(gpio_export)
+        super().destroy_node()
+
+
 
     def set_servo_angle(self, servo, angle):
         # map angle from [-pi/2,+pi/2] to pulse width [pulse_min,pulse_max]
