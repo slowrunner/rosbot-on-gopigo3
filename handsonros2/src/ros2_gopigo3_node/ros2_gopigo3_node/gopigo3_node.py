@@ -1,5 +1,19 @@
 #!/usr/bin/env python3
 #
+# FILE: ros2_gopigo3_node.py
+#
+# DOC:
+#    ROS2 Migration of the ROS1 gopigo3_driver.py node
+#    See: https://github.com/ros-gopigo3/gopigo3-pi-code/blob/master/pkg_mygopigo/src/gopigo3_driver.py
+# AUTHORS:
+#    Alan McDonley: ROS2 Migration 2021
+#    Christian Rauch: Original author of ROS1 gopigo3_node.py 2018
+#    Quint van Djik and John Cole: edits
+#
+# VERSION HISTORY:
+#
+#    2021:  Migration to ROS2
+#    2018:  Initial gopigo3_node.py and renamed gopigo3_driver.py
 
 import sys
 
@@ -21,11 +35,15 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import JointState
 from ros2_gopigo3_node.msg import MotorStatusLR, MotorStatus
 from ros2_gopigo3_node.srv import SPI, SPIResponse
-from tf.transformations import quaternion_about_axis
-from tf.broadcaster import TransformBroadcaster
+
+# from tf.transformations import quaternion_about_axis
+from tf_conversions import transformations
+# from tf.broadcaster import TransformBroadcaster
+from tf2_ros import TransformBroadcaster
+
 import numpy as np
-import os
-import time
+# import os
+# import time
 
 
 class GoPiGo3Node(Node):
@@ -48,13 +66,14 @@ class GoPiGo3Node(Node):
     def __init__(self):
         super().__init__('gopigo3_node')
         #### GoPiGo3 power management
+
+        """
         # export pin
         if not os.path.isdir("/sys/class/gpio/gpio"+self.POWER_PIN):
             gpio_export = os.open("/sys/class/gpio/export", os.O_WRONLY)
             os.write(gpio_export, self.POWER_PIN.encode())
             os.close(gpio_export)
-        time.sleep(0.1)
-
+        time.sleep(0.1
         # set pin direction
         gpio_direction = os.open("/sys/class/gpio/gpio"+self.POWER_PIN+"/direction", os.O_WRONLY)
         os.write(gpio_direction, "out".encode())
@@ -63,6 +82,7 @@ class GoPiGo3Node(Node):
         # activate power management
         self.gpio_value = os.open("/sys/class/gpio/gpio"+self.POWER_PIN+"/value", os.O_WRONLY)
         os.write(self.gpio_value, "1".encode())
+        """
 
         # GoPiGo3 and ROS setup
         self.g = gopigo3.GoPiGo3()
@@ -113,10 +133,10 @@ class GoPiGo3Node(Node):
         self.srv_pwr_off = self.create_service(Trigger, 'power/off',   self.power_off)
 
         # rate = rclpy.Rate(rclpy.get_param('hz', 30))   # in Hz
-        self.hz = 30   # TODO: this needs to be a parameter
+        self.hz = 1  # 1 for testing # 30   # TODO: this needs to be a parameter
         period_for_timer = 1.0 / self.hz
         self.timer = self.create_timer( period_for_timer, self.gopigo3_main_cb)  # call the gopigo3_node's main loop when ROS timer triggers 
-        self.get_logger().info('ros2_gopigo3_node: created main loop callback at {} Hz".format(self.hz))
+        self.get_logger().info('ros2_gopigo3_node: created main loop callback at {} Hz'.format(self.hz))
 
     # GoPiGo3Node main loop callback
     def gopigo3_main_cb(self):
@@ -146,6 +166,7 @@ class GoPiGo3Node(Node):
         self.g.offset_motor_encoder(self.ML, self.g.get_motor_encoder(self.ML))
         self.g.offset_motor_encoder(self.MR, self.g.get_motor_encoder(self.MR))
 
+        """
         # deactivate power management
         os.write(self.gpio_value, "0".encode())
         os.close(self.gpio_value)
@@ -155,6 +176,7 @@ class GoPiGo3Node(Node):
             gpio_export = os.open("/sys/class/gpio/unexport", os.O_WRONLY)
             os.write(gpio_export, self.POWER_PIN.encode())
             os.close(gpio_export)
+        """
         super().destroy_node()
 
 
@@ -186,11 +208,11 @@ class GoPiGo3Node(Node):
         return [True, ""]
 
     def power_on(self, req):
-        os.write(self.gpio_value, "1".encode())
+        # os.write(self.gpio_value, "1".encode())
         return [True, "Power ON"]
 
     def power_off(self, req):
-        os.write(self.gpio_value, "0".encode())
+        # os.write(self.gpio_value, "0".encode())
         return [True, "Power OFF"]
 
     def on_twist(self, twist):
@@ -241,7 +263,7 @@ class GoPiGo3Node(Node):
 
         # update state
         new_angle = (old_angle+angle) % (2*np.pi)
-        new_q = quaternion_about_axis(new_angle, (0, 0, 1))
+        new_q = transformations.quaternion_about_axis(new_angle, (0, 0, 1))
         new_angle2 = 2 * np.arccos(self.pose.pose.orientation.w)
         print("new_angle2", new_angle2)
         new_pos = np.zeros((2,))
@@ -276,8 +298,21 @@ class GoPiGo3Node(Node):
         return odom, transform
 
 
-if __name__ == '__main__':
+def main(args=None):
+    rclpy.init(args=args)
+
+    gopigo3_node = GoPiGo3Node()
+
     try:
-        Robot()
+        rclpy.spin(gopigo3_node)
+    except KeyboardInterrup:
+        print('\ncontrol-c: gopigo3_node shutting down')
     except rclpy.ROSInterruptException:
         pass
+    finally:
+        # Destroy the node explictly - don't depend on garbage collector
+        gopigo3_node.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

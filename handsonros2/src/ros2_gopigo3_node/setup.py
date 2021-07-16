@@ -11,11 +11,11 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         # Include all launch files
-        # (os.path.join('share', package_name), glob('launch/*.py)),
+        # (os.path.join('share', package_name), glob('launch/*.py')),
         # Include all msg files
-        # (os.path.join('share', package_name), glob('msg/*)),
+        (os.path.join('share', package_name), glob('msg/*')),
         # Include all service files
-        # (os.path.join('share', package_name), glob('srv/*)),
+        (os.path.join('share', package_name), glob('srv/*')),
 
 
     ],
@@ -30,6 +30,7 @@ setup(
         'console_scripts': [
             'distance_sensor = ros2_gopigo3_node.distance_sensor:main',
             'distance_sensor_subscriber = ros2_gopigo3_node.distance_sensor_subscriber:main',
+            'gopigo3_node = ros2_gopigo3_node.gopigo3_node:main',
         ],
     },
 )
