@@ -46,6 +46,7 @@ import numpy as np
 # import os
 # import time
 
+DEBUG = True
 
 class GoPiGo3Node(Node):
     # short variables
@@ -60,7 +61,7 @@ class GoPiGo3Node(Node):
     EW = gopigo3.GoPiGo3.LED_WIFI
     WIDTH = gopigo3.GoPiGo3.WHEEL_BASE_WIDTH * 1e-3
     CIRCUMFERENCE = gopigo3.GoPiGo3.WHEEL_CIRCUMFERENCE * 1e-3
-
+    DIODE_DROP = 0.7  # Voltage Drop from reverse polarity protection to make get_voltage() equal actual battery voltage
     POWER_PIN = "23"
     PULSE_RANGE = [575, 2425]
 
@@ -98,26 +99,26 @@ class GoPiGo3Node(Node):
 
         # rclpy.init_node("gopigo3")
 
-        self.br = TransformBroadcaster()
+        self.br = TransformBroadcaster(self)
 
-        # subscriber  ?? need QoSProfile ??
-        self.subscription = self.create_subscription(Int16,    "motor/dps/left",        lambda msg: self.g.set_motor_dps(self.ML, msg.data))
-        self.subscription = self.create_subscription(Int16,    "motor/dps/right",       lambda msg: self.g.set_motor_dps(self.MR, msg.data))
-        self.subscription = self.create_subscription(Int8,     "motor/pwm/left",        lambda msg: self.g.set_motor_power(self.ML, msg.data))
-        self.subscription = self.create_subscription(Int8,     "motor/pwm/right",       lambda msg: self.g.set_motor_power(self.MR, msg.data))
-        self.subscription = self.create_subscription(Int16,    "motor/position/left",   lambda msg: self.g.set_motor_position(self.ML, msg.data))
-        self.subscription = self.create_subscription(Int16,    "motor/position/right",  lambda msg: self.g.set_motor_position(self.MR, msg.data))
-        self.subscription = self.create_subscription(Int16,    "servo/pulse_width/1",   lambda msg: self.g.set_servo(self.S1, msg.data))
-        self.subscription = self.create_subscription(Int16,    "servo/pulse_width/2",   lambda msg: self.g.set_servo(self.S2, msg.data))
-        self.subscription = self.create_subscription(Float64,  "servo/position/1",      lambda msg: self.set_servo_angle(self.S1, msg.data))
-        self.subscription = self.create_subscription(Float64,  "servo/position/2",      lambda msg: self.set_servo_angle(self.S2, msg.data))
-        self.subscription = self.create_subscription(Twist,    "cmd_vel",               self.on_twist)
+        # subscriber  
+        self.subscription = self.create_subscription(Int16,    "motor/dps/left",        lambda msg: self.g.set_motor_dps(self.ML, msg.data),  10)
+        self.subscription = self.create_subscription(Int16,    "motor/dps/right",       lambda msg: self.g.set_motor_dps(self.MR, msg.data),  10)
+        self.subscription = self.create_subscription(Int8,     "motor/pwm/left",        lambda msg: self.g.set_motor_power(self.ML, msg.data), 10)
+        self.subscription = self.create_subscription(Int8,     "motor/pwm/right",       lambda msg: self.g.set_motor_power(self.MR, msg.data), 10)
+        self.subscription = self.create_subscription(Int16,    "motor/position/left",   lambda msg: self.g.set_motor_position(self.ML, msg.data), 10)
+        self.subscription = self.create_subscription(Int16,    "motor/position/right",  lambda msg: self.g.set_motor_position(self.MR, msg.data), 10)
+        self.subscription = self.create_subscription(Int16,    "servo/pulse_width1",   lambda msg: self.g.set_servo(self.S1, msg.data), 10)
+        self.subscription = self.create_subscription(Int16,    "servo/pulse_width2",   lambda msg: self.g.set_servo(self.S2, msg.data), 10)
+        self.subscription = self.create_subscription(Float64,  "servo/position1",      lambda msg: self.set_servo_angle(self.S1, msg.data), 10)
+        self.subscription = self.create_subscription(Float64,  "servo/position2",      lambda msg: self.set_servo_angle(self.S2, msg.data), 10)
+        self.subscription = self.create_subscription(Twist,    "cmd_vel",               self.on_twist, 10)
 
-        self.subscription = self.create_subscription(UInt8,    "led/blinker/left",      lambda msg: self.g.set_led(self.BL, msg.data))
-        self.subscription = self.create_subscription(UInt8,    "led/blinker/right",     lambda msg: self.g.set_led(self.BR, msg.data))
-        self.subscription = self.create_subscription(ColorRGBA,"led/eye/left",          lambda c: self.g.set_led(self.EL, int(c.r*255), int(c.g*255), int(c.b*255)))
-        self.subscription = self.create_subscription(ColorRGBA,"led/eye/right",         lambda c: self.g.set_led(self.ER, int(c.r*255), int(c.g*255), int(c.b*255)))
-        self.subscription = self.create_subscription(ColorRGBA,"led/wifi",              lambda c: self.g.set_led(self.EW, int(c.r * 255), int(c.g * 255), int(c.b * 255)))
+        self.subscription = self.create_subscription(UInt8,    "led/blinker/left",      lambda msg: self.g.set_led(self.BL, msg.data), 10)
+        self.subscription = self.create_subscription(UInt8,    "led/blinker/right",     lambda msg: self.g.set_led(self.BR, msg.data), 10)
+        self.subscription = self.create_subscription(ColorRGBA,"led/eye/left",          lambda c: self.g.set_led(self.EL, int(c.r*255), int(c.g*255), int(c.b*255)), 10)
+        self.subscription = self.create_subscription(ColorRGBA,"led/eye/right",         lambda c: self.g.set_led(self.ER, int(c.r*255), int(c.g*255), int(c.b*255)), 10)
+        self.subscription = self.create_subscription(ColorRGBA,"led/wifi",              lambda c: self.g.set_led(self.EW, int(c.r * 255), int(c.g * 255), int(c.b * 255)), 10)
 
         # publisher
         self.pub_enc_l = self.create_publisher(Float64,              'motor/encoder/left',  qos_profile=10)
@@ -143,25 +144,27 @@ class GoPiGo3Node(Node):
     # GoPiGo3Node main loop callback
     def gopigo3_main_cb(self):
 
-            self.pub_battery.publish(Float64(data=self.g.get_voltage_battery()))
+            self.pub_battery.publish(Float64(data=self.g.get_voltage_battery()+self.DIODE_DROP))
 
             # publish motor status, including encoder value
             (flags, power, encoder, speed) = self.g.get_motor_status(self.ML)
-            status_left = MotorStatus(low_voltage=(flags & (1<<0)), overloaded=(flags & (1<<1)),
-                                      power=power, encoder=encoder, speed=speed)
-            self.pub_enc_l.publish(Float64(data=encoder))
+            if DEBUG: print("flags:{} power:{} encoder:{} speed:{}".format(flags,power,encoder,speed))
+
+            status_left = MotorStatus(low_voltage=bool(flags & (1<<0)), overloaded=bool(flags & (1<<1)),
+                                      power=power, encoder=float(encoder), speed=float(speed))
+            self.pub_enc_l.publish(Float64(data=float(encoder)))
 
             (flags, power, encoder, speed) = self.g.get_motor_status(self.MR)
-            status_right = MotorStatus(low_voltage=(flags & (1<<0)), overloaded=(flags & (1<<1)),
-                                      power=power, encoder=encoder, speed=speed)
-            self.pub_enc_r.publish(Float64(data=encoder))
+            status_right = MotorStatus(low_voltage=bool(flags & (1<<0)), overloaded=bool(flags & (1<<1)),
+                                      power=power, encoder=float(encoder), speed=float(speed))
+            self.pub_enc_r.publish(Float64(data=float(encoder)))
 
-            self.pub_motor_status.publish(MotorStatusLR(header=Header(stamp=rclpy.Time.now()), left=status_left, right=status_right))
+            self.pub_motor_status.publish(MotorStatusLR(header=Header(stamp=self.get_clock().now().to_msg()), left=status_left, right=status_right))
 
             # publish current pose
             (odom, transform)= self.odometry(status_left, status_right)
             self.pub_odometry.publish(odom)
-            self.br.sendTransformMessage(transform)
+            self.br.sendTransform(transform)
 
     def destroy_node(self):
         self.g.reset_all()
@@ -294,10 +297,10 @@ class GoPiGo3Node(Node):
         self.pose.pose.position.x = new_pos[0]
         self.pose.pose.position.y = new_pos[1]
 
-        odom = Odometry(header=Header(stamp=rclpy.Time.now(), frame_id="odom"), child_frame_id="base_link",
+        odom = Odometry(header=Header(stamp=self.get_clock().now().to_msg(), frame_id="odom"), child_frame_id="base_link",
                         pose=self.pose, twist=twist)
 
-        transform = TransformStamped(header=Header(stamp=rclpy.Time.now(), frame_id="world"), child_frame_id="gopigo")
+        transform = TransformStamped(header=Header(stamp=self.get_clock().now().to_msg(), frame_id="world"), child_frame_id="gopigo")
         transform.transform.translation.x = self.pose.pose.position.x
         transform.transform.translation.y = self.pose.pose.position.y
         transform.transform.translation.z = self.pose.pose.position.z
@@ -313,10 +316,8 @@ def main(args=None):
 
     try:
         rclpy.spin(gopigo3_node)
-    except KeyboardInterrup:
+    except KeyboardInterrupt:
         print('\ncontrol-c: gopigo3_node shutting down')
-    except rclpy.ROSInterruptException:
-        pass
     finally:
         # Destroy the node explictly - don't depend on garbage collector
         gopigo3_node.destroy_node()
