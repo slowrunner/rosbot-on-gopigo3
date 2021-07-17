@@ -33,11 +33,12 @@ from geometry_msgs.msg import PoseWithCovariance, TwistWithCovariance
 from geometry_msgs.msg import TransformStamped
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import JointState
-from ros2_gopigo3_node.msg import MotorStatusLR, MotorStatus
-from ros2_gopigo3_node.srv import SPI, SPIResponse
+from ros2_gopigo3_msg.msg import MotorStatusLR, MotorStatus
+from ros2_gopigo3_msg.srv import SPI
+from rclpy.node import Node
 
 # from tf.transformations import quaternion_about_axis
-from tf_conversions import transformations
+from tf_transformations import quaternion_about_axis
 # from tf.broadcaster import TransformBroadcaster
 from tf2_ros import TransformBroadcaster
 
@@ -128,7 +129,8 @@ class GoPiGo3Node(Node):
 
         # services
         self.srv_reset = self.create_service(Trigger,   'reset',       self.reset)
-        self.srv_spi = self.create_service(SPI,         'spi',         lambda req: SPIResponse(data_in=self.g.spi_transfer_array(req.data_out)))
+        # self.srv_spi = self.create_service(SPI,         'spi',         lambda req: SPIResponse(data_in=self.g.spi_transfer_array(req.data_out)))
+        self.srv_spi = self.create_service(SPI,         'spi',         self.spi)
         self.srv_pwr_on = self.create_service(Trigger,  'power/on',    self.power_on)
         self.srv_pwr_off = self.create_service(Trigger, 'power/off',   self.power_off)
 
@@ -200,12 +202,17 @@ class GoPiGo3Node(Node):
         self.g.offset_motor_encoder(self.MR, self.g.get_motor_encoder(self.MR))
         self.last_encoders = {'l': 0, 'r': 0}
         self.pose = PoseWithCovariance()
-        self.pose.pose.orientation.w = 1
+        self.pose.pose.orientation.w = 1.0
 
     def reset(self, req):
         self.g.reset_all()
         self.reset_odometry()
         return [True, ""]
+
+    def spi(self, req, response):
+        # self.srv_spi = self.create_service(SPI,         'spi',         lambda req: SPIResponse(data_in=self.g.spi_transfer_array(req.data_out)))
+        response.data_in = self.g.spi_transfer_array(req.data_out)
+        return response
 
     def power_on(self, req):
         # os.write(self.gpio_value, "1".encode())
@@ -263,7 +270,8 @@ class GoPiGo3Node(Node):
 
         # update state
         new_angle = (old_angle+angle) % (2*np.pi)
-        new_q = transformations.quaternion_about_axis(new_angle, (0, 0, 1))
+        # new_q = transformations.quaternion_about_axis(new_angle, (0, 0, 1))
+        new_q = quaternion_about_axis(new_angle, (0, 0, 1))
         new_angle2 = 2 * np.arccos(self.pose.pose.orientation.w)
         print("new_angle2", new_angle2)
         new_pos = np.zeros((2,))

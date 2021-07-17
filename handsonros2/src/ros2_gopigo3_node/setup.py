@@ -1,4 +1,7 @@
 from setuptools import setup
+import os
+from glob import glob
+from setuptools import find_packages
 
 package_name = 'ros2_gopigo3_node'
 
@@ -11,11 +14,11 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         # Include all launch files
-        # (os.path.join('share', package_name), glob('launch/*.py')),
+        (os.path.join('share', package_name), glob('launch/*.py')),
         # Include all msg files
-        (os.path.join('share', package_name), glob('msg/*')),
+        (os.path.join('share', package_name), glob('msg/*.msg')),
         # Include all service files
-        (os.path.join('share', package_name), glob('srv/*')),
+        (os.path.join('share', package_name), glob('srv/*.srv')),
 
 
     ],

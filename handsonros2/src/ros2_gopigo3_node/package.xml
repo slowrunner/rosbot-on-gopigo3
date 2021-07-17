@@ -15,6 +15,8 @@
   <exec_depend>std_srvs</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>tf2</exec_depend>
+  <exec_depend>ros2_gopigo3_msg</exec_depend>
+  <exec_depend>tf_transformations</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
