@@ -110,8 +110,8 @@ class GoPiGo3Node(Node):
         print("MOTOR_TICKS_PER_DEGREE: {} (of wheel rotation)".format(self.g.MOTOR_TICKS_PER_DEGREE))
         print("(Using default values or ~/Dexter/gpg3_config.json if present)")
         print("\n")
-        encoder_precision_mm = M_PI * self.g.WHEEL_DIAMETER / 360.0 / self.g.MOTOR_TICKS_PER_DEGREE
-        print("Odometry Precision: {:.2f} mm".format(encoder_precision_mm))
+        encoder_accuracy_mm = (M_PI * self.g.WHEEL_DIAMETER / 360.0 ) / 2.0
+        print("Odometry Precision: +/- {:.2f} mm".format(encoder_accuracy_mm))
         print("==================================")
 
         self.reset_odometry()
@@ -155,7 +155,7 @@ class GoPiGo3Node(Node):
         self.srv_pwr_off = self.create_service(Trigger, 'power/off',   self.power_off)
 
         # rate = rclpy.Rate(rclpy.get_param('hz', 30))   # in Hz
-        self.hz = 1  # 1 for testing # 30   # TODO: this needs to be a parameter
+        self.hz = 10  # 10 for testing # 30   # TODO: this needs to be a parameter
         period_for_timer = 1.0 / self.hz
         self.timer = self.create_timer( period_for_timer, self.gopigo3_main_cb)  # call the gopigo3_node's main loop when ROS timer triggers 
         self.get_logger().info('ros2_gopigo3_node: created main loop callback at {} Hz'.format(self.hz))
