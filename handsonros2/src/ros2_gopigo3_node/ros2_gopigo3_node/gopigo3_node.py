@@ -36,6 +36,7 @@ from sensor_msgs.msg import JointState
 from ros2_gopigo3_msg.msg import MotorStatusLR, MotorStatus
 from ros2_gopigo3_msg.srv import SPI
 from rclpy.node import Node
+from math import pi as M_PI
 
 # from tf.transformations import quaternion_about_axis
 from tf_transformations import quaternion_about_axis
@@ -46,7 +47,7 @@ import numpy as np
 # import os
 # import time
 
-DEBUG = True
+DEBUG = False
 
 class GoPiGo3Node(Node):
     # short variables
@@ -88,12 +89,25 @@ class GoPiGo3Node(Node):
 
         # GoPiGo3 and ROS setup
         self.g = gopigo3.GoPiGo3()
+        print("==================================")
         print("GoPiGo3 info:")
         print("Manufacturer    : ", self.g.get_manufacturer())
         print("Board           : ", self.g.get_board())
         print("Serial Number   : ", self.g.get_id())
         print("Hardware version: ", self.g.get_version_hardware())
         print("Firmware version: ", self.g.get_version_firmware())
+
+        print("\nGoPiGo3 Configuration:")
+        print("WHEEL_DIAMETER: {:.2f} mm".format(self.g.WHEEL_DIAMETER))
+        print("WHEEL_BASE_WIDTH: {:.2f} mm".format(self.g.WHEEL_BASE_WIDTH))
+        print("ENCODER_TICKS_PER_ROTATION: {} (per one motor revolution)".format(self.g.ENCODER_TICKS_PER_ROTATION))
+        print("MOTOR_GEAR_RATIO: {} (motor revolutions per wheel revolution)".format(self.g.MOTOR_GEAR_RATIO))
+        print("MOTOR_TICKS_PER_DEGREE: {} (of wheel rotation)".format(self.g.MOTOR_TICKS_PER_DEGREE))
+        print("(Using default values or ~/Dexter/gpg3_config.json if present)")
+        print("\n")
+        encoder_precision = M_PI * self.g.WHEEL_DIAMETER / 360.0 * self.g.MOTOR_TICKS_PER_DEGREE
+        print("Odometry Precision: {:.1f} mm".format(encoder_precision))
+        print("==================================")
 
         self.reset_odometry()
 
