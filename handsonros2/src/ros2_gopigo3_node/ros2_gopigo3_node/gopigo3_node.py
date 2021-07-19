@@ -50,7 +50,7 @@ import numpy as np
 DEBUG = False
 
 class GoPiGo3Node(Node):
-    # short variables
+    # short constants
     ML = gopigo3.GoPiGo3.MOTOR_LEFT
     MR = gopigo3.GoPiGo3.MOTOR_RIGHT
     S1 = gopigo3.GoPiGo3.SERVO_1
@@ -60,8 +60,8 @@ class GoPiGo3Node(Node):
     EL = gopigo3.GoPiGo3.LED_EYE_LEFT
     ER = gopigo3.GoPiGo3.LED_EYE_RIGHT
     EW = gopigo3.GoPiGo3.LED_WIFI
-    WIDTH = gopigo3.GoPiGo3.WHEEL_BASE_WIDTH * 1e-3
-    CIRCUMFERENCE = gopigo3.GoPiGo3.WHEEL_CIRCUMFERENCE * 1e-3
+    # WIDTH = gopigo3.GoPiGo3.WHEEL_BASE_WIDTH * 1e-3
+    # CIRCUMFERENCE = gopigo3.GoPiGo3.WHEEL_CIRCUMFERENCE * 1e-3
     DIODE_DROP = 0.7  # Voltage Drop from reverse polarity protection to make get_voltage() equal actual battery voltage
     POWER_PIN = "23"
     PULSE_RANGE = [575, 2425]
@@ -89,6 +89,11 @@ class GoPiGo3Node(Node):
 
         # GoPiGo3 and ROS setup
         self.g = gopigo3.GoPiGo3()
+
+        # Short Constants in meters
+        self.WIDTH = self.g.WHEEL_BASE_WIDTH * 1e-3
+        self.CIRCUMFERENCE = self.g.WHEEL_CIRCUMFERENCE * 1e-3
+
         print("==================================")
         print("GoPiGo3 info:")
         print("Manufacturer    : ", self.g.get_manufacturer())
@@ -98,15 +103,15 @@ class GoPiGo3Node(Node):
         print("Firmware version: ", self.g.get_version_firmware())
 
         print("\nGoPiGo3 Configuration:")
-        print("WHEEL_DIAMETER: {:.2f} mm".format(self.g.WHEEL_DIAMETER))
-        print("WHEEL_BASE_WIDTH: {:.2f} mm".format(self.g.WHEEL_BASE_WIDTH))
+        print("WHEEL_DIAMETER: {:.3f} mm".format(self.g.WHEEL_DIAMETER))
+        print("WHEEL_BASE_WIDTH: {:.3f} mm".format(self.g.WHEEL_BASE_WIDTH))
         print("ENCODER_TICKS_PER_ROTATION: {} (per one motor revolution)".format(self.g.ENCODER_TICKS_PER_ROTATION))
         print("MOTOR_GEAR_RATIO: {} (motor revolutions per wheel revolution)".format(self.g.MOTOR_GEAR_RATIO))
         print("MOTOR_TICKS_PER_DEGREE: {} (of wheel rotation)".format(self.g.MOTOR_TICKS_PER_DEGREE))
         print("(Using default values or ~/Dexter/gpg3_config.json if present)")
         print("\n")
-        encoder_precision = M_PI * self.g.WHEEL_DIAMETER / 360.0 * self.g.MOTOR_TICKS_PER_DEGREE
-        print("Odometry Precision: {:.1f} mm".format(encoder_precision))
+        encoder_precision_mm = M_PI * self.g.WHEEL_DIAMETER / 360.0 / self.g.MOTOR_TICKS_PER_DEGREE
+        print("Odometry Precision: {:.2f} mm".format(encoder_precision_mm))
         print("==================================")
 
         self.reset_odometry()
@@ -290,7 +295,7 @@ class GoPiGo3Node(Node):
         # new_q = transformations.quaternion_about_axis(new_angle, (0, 0, 1))
         new_q = quaternion_about_axis(new_angle, (0, 0, 1))
         new_angle2 = 2 * np.arccos(self.pose.pose.orientation.w)
-        print("new_angle2", new_angle2)
+        if DEBUG: print("new_angle2", new_angle2)
         new_pos = np.zeros((2,))
 
         if abs(angle) < 1e-6:
