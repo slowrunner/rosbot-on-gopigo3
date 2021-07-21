@@ -47,7 +47,7 @@ import numpy as np
 # import os
 # import time
 
-DEBUG = False
+DEBUG = false
 
 class GoPiGo3Node(Node):
     # short constants
@@ -155,7 +155,10 @@ class GoPiGo3Node(Node):
         self.srv_pwr_off = self.create_service(Trigger, 'power/off',   self.power_off)
 
         # rate = rclpy.Rate(rclpy.get_param('hz', 30))   # in Hz
-        self.hz = 10  # 10 for testing # 30   # TODO: this needs to be a parameter
+        if DEBUG:
+            self.hz = 1  # 1 for testing 
+        else:
+            self.hz = 30   # TODO: this needs to be a parameter
         period_for_timer = 1.0 / self.hz
         self.timer = self.create_timer( period_for_timer, self.gopigo3_main_cb)  # call the gopigo3_node's main loop when ROS timer triggers 
         self.get_logger().info('ros2_gopigo3_node: created main loop callback at {} Hz'.format(self.hz))
@@ -207,17 +210,18 @@ class GoPiGo3Node(Node):
 
     def set_servo_angle(self, servo, angle):
         # map angle from [-pi/2,+pi/2] to pulse width [pulse_min,pulse_max]
-        angle = np.clip(angle, -np.pi/2, np.pi/2)
+        cangle = np.clip(angle, -np.pi/2, np.pi/2)
         # normalise to range [0,1]
-        pos_norm = (1+angle/(np.pi/2))/2.0
+        pos_norm = (1+cangle/(np.pi/2))/2.0
         pulse = self.PULSE_RANGE[0] + pos_norm * (self.PULSE_RANGE[1]-self.PULSE_RANGE[0])
         # set servo position by pulse width
         pulse = np.rint(pulse).astype(np.int)
         pulse = np.clip(pulse, self.PULSE_RANGE[0], self.PULSE_RANGE[1])
-        self.g.set_servo(servo, pulse)
+        if DEBUG: print('set_servo_angle(): angle: {:.3f} clipped angle: {:.3f}  pulse: {}'.format(angle, cangle, pulse))
+        self.g.set_servo(servo, int(pulse))
         # publish servo position as joint
         servo_names = {self.S1: "servo1", self.S2: "servo2"}
-        self.pub_joints.publish(JointState(name=[servo_names[servo]], position=[angle]))
+        self.pub_joints.publish(JointState(name=[servo_names[servo]], position=[cangle]))
 
     def reset_odometry(self):
         self.g.offset_motor_encoder(self.ML, self.g.get_motor_encoder(self.ML))
