@@ -47,7 +47,10 @@ import numpy as np
 # import os
 # import time
 
-DEBUG = false
+DEBUG = False
+
+# Uncomment next line for Debugging
+# DEBUG = True
 
 class GoPiGo3Node(Node):
     # short constants
