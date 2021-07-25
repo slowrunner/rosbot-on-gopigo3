@@ -47,10 +47,11 @@ import numpy as np
 # import os
 # import time
 
-DEBUG = False
+NODE_VERSION = '0.4'
 
+DEBUG = False
 # Uncomment next line for Debugging
-# DEBUG = True
+DEBUG = True
 
 class GoPiGo3Node(Node):
     # short constants
@@ -106,15 +107,14 @@ class GoPiGo3Node(Node):
         print("Firmware version: ", self.g.get_version_firmware())
 
         print("\nGoPiGo3 Configuration:")
+        print("(Using default values or ~/Dexter/gpg3_config.json if present)")
         print("WHEEL_DIAMETER: {:.3f} mm".format(self.g.WHEEL_DIAMETER))
         print("WHEEL_BASE_WIDTH: {:.3f} mm".format(self.g.WHEEL_BASE_WIDTH))
         print("ENCODER_TICKS_PER_ROTATION: {} (per one motor revolution)".format(self.g.ENCODER_TICKS_PER_ROTATION))
         print("MOTOR_GEAR_RATIO: {} (motor revolutions per wheel revolution)".format(self.g.MOTOR_GEAR_RATIO))
         print("MOTOR_TICKS_PER_DEGREE: {} (of wheel rotation)".format(self.g.MOTOR_TICKS_PER_DEGREE))
-        print("(Using default values or ~/Dexter/gpg3_config.json if present)")
         print("\n")
-        encoder_accuracy_mm = (M_PI * self.g.WHEEL_DIAMETER / 360.0 ) / 2.0
-        print("Odometry Precision: +/- {:.2f} mm".format(encoder_accuracy_mm))
+        print("Node Version: {}".format(NODE_VERSION))
         print("==================================")
 
         self.reset_odometry()
@@ -123,17 +123,22 @@ class GoPiGo3Node(Node):
 
         self.br = TransformBroadcaster(self)
 
-        # subscriber  
+        # subscriber
+        self.subscription = self.create_subscription(Int16,    "motor/dps/both",        lambda msg: self.g.set_motor_dps(self.ML+self.MR, msg.data),  10)  # ADDED: Alan
         self.subscription = self.create_subscription(Int16,    "motor/dps/left",        lambda msg: self.g.set_motor_dps(self.ML, msg.data),  10)
         self.subscription = self.create_subscription(Int16,    "motor/dps/right",       lambda msg: self.g.set_motor_dps(self.MR, msg.data),  10)
+        self.subscription = self.create_subscription(Int8,     "motor/pwm/both",        lambda msg: self.g.set_motor_power(self.ML+self.MR, msg.data), 10) # ADDED: Alan
         self.subscription = self.create_subscription(Int8,     "motor/pwm/left",        lambda msg: self.g.set_motor_power(self.ML, msg.data), 10)
         self.subscription = self.create_subscription(Int8,     "motor/pwm/right",       lambda msg: self.g.set_motor_power(self.MR, msg.data), 10)
+        # self.subscription = self.create_subscription(Int16,     "motor/limitdps",        lambda msg: self.g.set_motor_limits(self.ML+self.MR, dps=msg.data), 10)
+        # self.subscription = self.create_subscription(Int16,     "motor/limitpwr",        lambda msg: self.g.set_motor_limits(self.ML+self.MR, power=msg.data), 10)
+        self.subscription = self.create_subscription(Int16,    "motor/position/both",   lambda msg: self.g.set_motor_position(self.ML+self.MR, msg.data), 10) # ADDED: Alan
         self.subscription = self.create_subscription(Int16,    "motor/position/left",   lambda msg: self.g.set_motor_position(self.ML, msg.data), 10)
         self.subscription = self.create_subscription(Int16,    "motor/position/right",  lambda msg: self.g.set_motor_position(self.MR, msg.data), 10)
-        self.subscription = self.create_subscription(Int16,    "servo/pulse_width1",   lambda msg: self.g.set_servo(self.S1, msg.data), 10)
-        self.subscription = self.create_subscription(Int16,    "servo/pulse_width2",   lambda msg: self.g.set_servo(self.S2, msg.data), 10)
-        self.subscription = self.create_subscription(Float64,  "servo/position1",      lambda msg: self.set_servo_angle(self.S1, msg.data), 10)
-        self.subscription = self.create_subscription(Float64,  "servo/position2",      lambda msg: self.set_servo_angle(self.S2, msg.data), 10)
+        self.subscription = self.create_subscription(Int16,    "servo/pulse_width/S1",   lambda msg: self.g.set_servo(self.S1, msg.data), 10)
+        self.subscription = self.create_subscription(Int16,    "servo/pulse_width/S2",   lambda msg: self.g.set_servo(self.S2, msg.data), 10)
+        self.subscription = self.create_subscription(Float64,  "servo/position/S1",      lambda msg: self.set_servo_angle(self.S1, msg.data), 10)
+        self.subscription = self.create_subscription(Float64,  "servo/position/S2",      lambda msg: self.set_servo_angle(self.S2, msg.data), 10)
         self.subscription = self.create_subscription(Twist,    "cmd_vel",               self.on_twist, 10)
 
         self.subscription = self.create_subscription(UInt8,    "led/blinker/left",      lambda msg: self.g.set_led(self.BL, msg.data), 10)
@@ -151,11 +156,12 @@ class GoPiGo3Node(Node):
         self.pub_joints = self.create_publisher(JointState,          "joint_state",         qos_profile=10)
 
         # services
-        self.srv_reset = self.create_service(Trigger,   'reset',       self.reset)
+        self.srv_reset = self.create_service(Trigger,      'reset',       self.reset)
+        self.srv_odom_reset = self.create_service(Trigger, 'odom/reset',  self.odom_reset)   # ADDED: Alan
         # self.srv_spi = self.create_service(SPI,         'spi',         lambda req: SPIResponse(data_in=self.g.spi_transfer_array(req.data_out)))
-        self.srv_spi = self.create_service(SPI,         'spi',         self.spi)
-        self.srv_pwr_on = self.create_service(Trigger,  'power/on',    self.power_on)
-        self.srv_pwr_off = self.create_service(Trigger, 'power/off',   self.power_off)
+        self.srv_spi = self.create_service(SPI,            'spi',         self.spi)
+        self.srv_pwr_on = self.create_service(Trigger,     'power/on',    self.power_on)
+        self.srv_pwr_off = self.create_service(Trigger,    'power/off',   self.power_off)
 
         # rate = rclpy.Rate(rclpy.get_param('hz', 30))   # in Hz
         if DEBUG:
@@ -173,13 +179,14 @@ class GoPiGo3Node(Node):
 
             # publish motor status, including encoder value
             (flags, power, encoder, speed) = self.g.get_motor_status(self.ML)
-            if DEBUG: print("flags:{} power:{} encoder:{} speed:{}".format(flags,power,encoder,speed))
+            if DEBUG: print("left  - flags:{} power:{} encoder:{} speed:{}".format(flags,power,encoder,speed))
 
             status_left = MotorStatus(low_voltage=bool(flags & (1<<0)), overloaded=bool(flags & (1<<1)),
                                       power=power, encoder=float(encoder), speed=float(speed))
             self.pub_enc_l.publish(Float64(data=float(encoder)))
 
             (flags, power, encoder, speed) = self.g.get_motor_status(self.MR)
+            if DEBUG: print("right - flags:{} power:{} encoder:{} speed:{}".format(flags,power,encoder,speed))
             status_right = MotorStatus(low_voltage=bool(flags & (1<<0)), overloaded=bool(flags & (1<<1)),
                                       power=power, encoder=float(encoder), speed=float(speed))
             self.pub_enc_r.publish(Float64(data=float(encoder)))
@@ -192,10 +199,16 @@ class GoPiGo3Node(Node):
             self.br.sendTransform(transform)
 
     def destroy_node(self):
+        if DEBUG:
+            print('destroy_node(): encoders: ({},{})'.format(self.g.get_motor_encoder(self.ML),self.g.get_motor_encoder(self.MR)))
+        self.g.reset_motor_encoder(self.ML+self.MR)
+        if DEBUG:
+            print('destroy_node(): encoders: ({},{})'.format(self.g.get_motor_encoder(self.ML),self.g.get_motor_encoder(self.MR)))
         self.g.reset_all()
-        self.g.offset_motor_encoder(self.ML, self.g.get_motor_encoder(self.ML))
-        self.g.offset_motor_encoder(self.MR, self.g.get_motor_encoder(self.MR))
-
+        if DEBUG:
+            print('destroy_node(): encoders: ({},{})'.format(self.g.get_motor_encoder(self.ML),self.g.get_motor_encoder(self.MR)))
+        # self.g.offset_motor_encoder(self.ML, self.g.get_motor_encoder(self.ML))
+        # self.g.offset_motor_encoder(self.MR, self.g.get_motor_encoder(self.MR))
         """
         # deactivate power management
         os.write(self.gpio_value, "0".encode())
@@ -208,7 +221,6 @@ class GoPiGo3Node(Node):
             os.close(gpio_export)
         """
         super().destroy_node()
-
 
 
     def set_servo_angle(self, servo, angle):
@@ -227,11 +239,34 @@ class GoPiGo3Node(Node):
         self.pub_joints.publish(JointState(name=[servo_names[servo]], position=[cangle]))
 
     def reset_odometry(self):
+        if DEBUG:
+            print('reset_odometry(): encoders: ({},{})'.format(self.g.get_motor_encoder(self.ML),self.g.get_motor_encoder(self.MR)))
         self.g.offset_motor_encoder(self.ML, self.g.get_motor_encoder(self.ML))
         self.g.offset_motor_encoder(self.MR, self.g.get_motor_encoder(self.MR))
+        # self.g.reset_motor_encoder(self.ML+self.MR)
+        if DEBUG:
+            print('reset_odometry(): encoders: ({},{})'.format(self.g.get_motor_encoder(self.ML),self.g.get_motor_encoder(self.MR)))
         self.last_encoders = {'l': 0, 'r': 0}
         self.pose = PoseWithCovariance()
         self.pose.pose.orientation.w = 1.0
+
+    def odom_reset(self, req, response):
+        """ Reset encoders, orientation, and position to 0 """
+        if DEBUG:
+            print('odom_reset({}, {}): triggered'.format(req,response))
+            print('odom_reset: type(req): {}'.format(type(req)))
+            print('odom_reset: type(response): {}'.format(type(response)))
+        self.g.reset_motor_encoder(self.ML+self.MR)
+        self.last_encoders = {'l': 0, 'r': 0}
+        self.pose.pose.orientation.x = 0.0
+        self.pose.pose.orientation.y = 0.0
+        self.pose.pose.orientation.z = 0.0
+        self.pose.pose.orientation.w = 1.0
+        self.pose.pose.position.x = 0.0
+        self.pose.pose.position.y = 0.0
+        response.success = True
+        response.message = ""
+        return response
 
     def reset(self, req):
         self.g.reset_all()
