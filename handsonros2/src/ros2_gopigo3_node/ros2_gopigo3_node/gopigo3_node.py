@@ -105,7 +105,8 @@ class GoPiGo3Node(Node):
         # Declare Parameters
         self.declare_parameter('S1LPW', self.S1LPW, ParameterDescriptor(description='Int16 Left Limit Pulse Width For Servo 1'))
         self.declare_parameter('S1RPW', self.S1RPW, ParameterDescriptor(description='Int16 Right Limit Pulse Width For Servo 1'))
-        (self.S1LPW, self.S1RPW) = self.get_parameters(['S1LPW','S1RPW'])
+        self.S1LPW  = self.get_parameter('S1LPW').get_parameter_value().integer_value
+        self.S1RPW  = self.get_parameter('S1RPW').get_parameter_value().integer_value
         self.S1_PULSE_RANGE = [self.S1RPW, self.S1LPW]
 
 
@@ -211,8 +212,8 @@ class GoPiGo3Node(Node):
             self.br.sendTransform(transform)
 
             # Handle Parameters
-            self.S1LPW = self.get_parameter('S1LPW').get_parameter_value()
-            self.S1RPW = self.get_parameter('S1RPW').get_parameter_value()
+            self.S1LPW = self.get_parameter('S1LPW').get_parameter_value().integer_value
+            self.S1RPW = self.get_parameter('S1RPW').get_parameter_value().integer_value
             if DEBUG:
                 print('S1LPW: {} S1RPW: {}'.format(self.S1LPW, self.S1RPW))
 
