@@ -36,6 +36,8 @@ from sensor_msgs.msg import JointState
 from ros2_gopigo3_msg.msg import MotorStatusLR, MotorStatus
 from ros2_gopigo3_msg.srv import SPI
 from rclpy.node import Node
+from rclpy.exceptions import ParameterNotDeclaredException
+from rcl_interfaces.msg import ParameterDescriptor, ParameterType
 from math import pi as M_PI
 
 # from tf.transformations import quaternion_about_axis
@@ -69,6 +71,8 @@ class GoPiGo3Node(Node):
     DIODE_DROP = 0.7  # Voltage Drop from reverse polarity protection to make get_voltage() equal actual battery voltage
     POWER_PIN = "23"
     PULSE_RANGE = [575, 2425]
+    S1LPW = 2425
+    S1RPW = 575
 
     def __init__(self):
         super().__init__('gopigo3_node')
@@ -98,6 +102,13 @@ class GoPiGo3Node(Node):
         self.WIDTH = self.g.WHEEL_BASE_WIDTH * 1e-3
         self.CIRCUMFERENCE = self.g.WHEEL_CIRCUMFERENCE * 1e-3
 
+        # Declare Parameters
+        self.declare_parameter('S1LPW', self.S1LPW, ParameterDescriptor(description='Int16 Left Limit Pulse Width For Servo 1'))
+        self.declare_parameter('S1RPW', self.S1RPW, ParameterDescriptor(description='Int16 Right Limit Pulse Width For Servo 1'))
+        (self.S1LPW, self.S1RPW) = self.get_parameters(['S1LPW','S1RPW'])
+        self.S1_PULSE_RANGE = [self.S1RPW, self.S1LPW]
+
+
         print("==================================")
         print("GoPiGo3 info:")
         print("Manufacturer    : ", self.g.get_manufacturer())
@@ -115,6 +126,7 @@ class GoPiGo3Node(Node):
         print("MOTOR_TICKS_PER_DEGREE: {} (of wheel rotation)".format(self.g.MOTOR_TICKS_PER_DEGREE))
         print("\n")
         print("Node Version: {}".format(NODE_VERSION))
+        print("Servo1 PulseWidths L: {} R: {}".format(self.S1LPW, self.S1RPW))
         print("==================================")
 
         self.reset_odometry()
@@ -197,6 +209,12 @@ class GoPiGo3Node(Node):
             (odom, transform)= self.odometry(status_left, status_right)
             self.pub_odometry.publish(odom)
             self.br.sendTransform(transform)
+
+            # Handle Parameters
+            self.S1LPW = self.get_parameter('S1LPW').get_parameter_value()
+            self.S1RPW = self.get_parameter('S1RPW').get_parameter_value()
+            if DEBUG:
+                print('S1LPW: {} S1RPW: {}'.format(self.S1LPW, self.S1RPW))
 
     def destroy_node(self):
         if DEBUG:
