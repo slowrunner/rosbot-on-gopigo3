@@ -12,7 +12,7 @@
 #
 # VERSION HISTORY:
 #
-#    2021:  Migration to ROS2
+#    2021:  Migration to ROS2, servo parameters
 #    2018:  Initial gopigo3_node.py and renamed gopigo3_driver.py
 
 import sys
@@ -49,11 +49,11 @@ import numpy as np
 # import os
 # import time
 
-NODE_VERSION = '0.4'
+NODE_VERSION = '0.5'
 
 DEBUG = False
 # Uncomment next line for Debugging
-DEBUG = True
+# DEBUG = True
 
 class GoPiGo3Node(Node):
     # short constants
@@ -66,13 +66,21 @@ class GoPiGo3Node(Node):
     EL = gopigo3.GoPiGo3.LED_EYE_LEFT
     ER = gopigo3.GoPiGo3.LED_EYE_RIGHT
     EW = gopigo3.GoPiGo3.LED_WIFI
+    # Moved the following to __init__() to get from instance instead of class
     # WIDTH = gopigo3.GoPiGo3.WHEEL_BASE_WIDTH * 1e-3
     # CIRCUMFERENCE = gopigo3.GoPiGo3.WHEEL_CIRCUMFERENCE * 1e-3
     DIODE_DROP = 0.7  # Voltage Drop from reverse polarity protection to make get_voltage() equal actual battery voltage
     POWER_PIN = "23"
-    PULSE_RANGE = [575, 2425]
-    S1LPW = 2425
+    # Move the following to __init__() and the node_cb() for parameterized servo limits
+    # PULSE_RANGE = [575, 2425]
+
+    # SERVO DEFAULTS can be reset by ros-arg parameters, parameter file, or parameter messages
+    S1LPW = 2425         # defaults for ModRobotics Servo Kit
     S1RPW = 575
+    S2LPW = 2425
+    S2RPW = 575
+    S1SECTOR = M_PI      # 180 degrees  (default is full travel)
+    S2SECTOR = M_PI      # 180 degrees
 
     def __init__(self):
         super().__init__('gopigo3_node')
@@ -105,30 +113,23 @@ class GoPiGo3Node(Node):
         # Declare Parameters
         self.declare_parameter('S1LPW', self.S1LPW, ParameterDescriptor(description='Int16 Left Limit Pulse Width For Servo 1'))
         self.declare_parameter('S1RPW', self.S1RPW, ParameterDescriptor(description='Int16 Right Limit Pulse Width For Servo 1'))
+        self.declare_parameter('S1SECTOR', self.S1SECTOR, ParameterDescriptor(description='Float Total Sector Angle in Rads for Servo 1'))
+
+        self.declare_parameter('S2LPW', self.S2LPW, ParameterDescriptor(description='Int16 Left Limit Pulse Width For Servo 2'))
+        self.declare_parameter('S2RPW', self.S2RPW, ParameterDescriptor(description='Int16 Right Limit Pulse Width For Servo 2'))
+        self.declare_parameter('S2SECTOR', self.S2SECTOR, ParameterDescriptor(description='Float Total Sector Angle in Rads for Servo 2'))
+
         self.S1LPW  = self.get_parameter('S1LPW').get_parameter_value().integer_value
         self.S1RPW  = self.get_parameter('S1RPW').get_parameter_value().integer_value
         self.S1_PULSE_RANGE = [self.S1RPW, self.S1LPW]
+        self.S1SECTOR  = self.get_parameter('S1SECTOR').get_parameter_value().double_value
+
+        self.S2LPW  = self.get_parameter('S2LPW').get_parameter_value().integer_value
+        self.S2RPW  = self.get_parameter('S2RPW').get_parameter_value().integer_value
+        self.S2_PULSE_RANGE = [self.S2RPW, self.S2LPW]
+        self.S2SECTOR  = self.get_parameter('S2SECTOR').get_parameter_value().double_value
 
 
-        print("==================================")
-        print("GoPiGo3 info:")
-        print("Manufacturer    : ", self.g.get_manufacturer())
-        print("Board           : ", self.g.get_board())
-        print("Serial Number   : ", self.g.get_id())
-        print("Hardware version: ", self.g.get_version_hardware())
-        print("Firmware version: ", self.g.get_version_firmware())
-
-        print("\nGoPiGo3 Configuration:")
-        print("(Using default values or ~/Dexter/gpg3_config.json if present)")
-        print("WHEEL_DIAMETER: {:.3f} mm".format(self.g.WHEEL_DIAMETER))
-        print("WHEEL_BASE_WIDTH: {:.3f} mm".format(self.g.WHEEL_BASE_WIDTH))
-        print("ENCODER_TICKS_PER_ROTATION: {} (per one motor revolution)".format(self.g.ENCODER_TICKS_PER_ROTATION))
-        print("MOTOR_GEAR_RATIO: {} (motor revolutions per wheel revolution)".format(self.g.MOTOR_GEAR_RATIO))
-        print("MOTOR_TICKS_PER_DEGREE: {} (of wheel rotation)".format(self.g.MOTOR_TICKS_PER_DEGREE))
-        print("\n")
-        print("Node Version: {}".format(NODE_VERSION))
-        print("Servo1 PulseWidths L: {} R: {}".format(self.S1LPW, self.S1RPW))
-        print("==================================")
 
         self.reset_odometry()
 
@@ -185,6 +186,38 @@ class GoPiGo3Node(Node):
         self.timer = self.create_timer( period_for_timer, self.gopigo3_main_cb)  # call the gopigo3_node's main loop when ROS timer triggers 
         self.get_logger().info('ros2_gopigo3_node: created main loop callback at {} Hz'.format(self.hz))
 
+
+        print("==================================")
+        print("GoPiGo3 info:")
+        print("Manufacturer    : ", self.g.get_manufacturer())
+        print("Board           : ", self.g.get_board())
+        print("Serial Number   : ", self.g.get_id())
+        print("Hardware version: ", self.g.get_version_hardware())
+        print("Firmware version: ", self.g.get_version_firmware())
+
+        print("\nGoPiGo3 Configuration:")
+        print("(Using default values or ~/Dexter/gpg3_config.json if present)")
+        print("WHEEL_DIAMETER: {:.3f} mm".format(self.g.WHEEL_DIAMETER))
+        print("WHEEL_BASE_WIDTH: {:.3f} mm".format(self.g.WHEEL_BASE_WIDTH))
+        print("ENCODER_TICKS_PER_ROTATION: {} (per one motor revolution)".format(self.g.ENCODER_TICKS_PER_ROTATION))
+        print("MOTOR_GEAR_RATIO: {} (motor revolutions per wheel revolution)".format(self.g.MOTOR_GEAR_RATIO))
+        print("MOTOR_TICKS_PER_DEGREE: {:.2f} (of wheel rotation)".format(self.g.MOTOR_TICKS_PER_DEGREE))
+        print("\n")
+        print("Node Version: {}".format(NODE_VERSION))
+        if DEBUG:
+            print("DEBUG MODE - Rate: {} hz".format(self.hz))
+        else:
+            print("Rate: {} hz".format(self.hz))
+        print("Servo1 PulseWidths L: {} R: {} us".format(self.S1LPW, self.S1RPW))
+        print("Servo1 Total Sector Width: {} radians".format(self.S1SECTOR))
+        print("Servo2 PulseWidths L: {} R: {} us".format(self.S2LPW, self.S2RPW))
+        print("Servo2 Total Sector Width: {:.2f} radians".format(self.S2SECTOR))
+        print("==================================")
+
+
+
+
+
     # GoPiGo3Node main loop callback
     def gopigo3_main_cb(self):
 
@@ -211,11 +244,22 @@ class GoPiGo3Node(Node):
             self.pub_odometry.publish(odom)
             self.br.sendTransform(transform)
 
-            # Handle Parameters
+            # Handle Parameters changing during execution
             self.S1LPW = self.get_parameter('S1LPW').get_parameter_value().integer_value
             self.S1RPW = self.get_parameter('S1RPW').get_parameter_value().integer_value
+            self.S1_PULSE_RANGE = [self.S1RPW, self.S1LPW]
+            self.S1SECTOR  = self.get_parameter('S1SECTOR').get_parameter_value().double_value
+
+            self.S2LPW = self.get_parameter('S2LPW').get_parameter_value().integer_value
+            self.S2RPW = self.get_parameter('S2RPW').get_parameter_value().integer_value
+            self.S2_PULSE_RANGE = [self.S2RPW, self.S2LPW]
+            self.S2SECTOR  = self.get_parameter('S2SECTOR').get_parameter_value().double_value
+
             if DEBUG:
                 print('S1LPW: {} S1RPW: {}'.format(self.S1LPW, self.S1RPW))
+                print('S1SECTOR: {:.2f} rads'.format(self.S1SECTOR))
+                print('S2LPW: {} S2RPW: {}'.format(self.S2LPW, self.S2RPW))
+                print('S2SECTOR: {:.2f} rads'.format(self.S2SECTOR))
 
     def destroy_node(self):
         if DEBUG:
@@ -244,18 +288,31 @@ class GoPiGo3Node(Node):
 
     def set_servo_angle(self, servo, angle):
         # map angle from [-pi/2,+pi/2] to pulse width [pulse_min,pulse_max]
-        cangle = np.clip(angle, -np.pi/2, np.pi/2)
-        # normalise to range [0,1]
-        pos_norm = (1+cangle/(np.pi/2))/2.0
-        pulse = self.PULSE_RANGE[0] + pos_norm * (self.PULSE_RANGE[1]-self.PULSE_RANGE[0])
-        # set servo position by pulse width
+        # cangle = np.clip(angle, -np.pi/2, np.pi/2)
+
+        # map angle from [-SnSECTOR/2, +SnSECTOR/2] to pulse width [SnRPW, SnLPW]
+        if (servo == self.S1):
+            cangle = np.clip(angle, -self.S1SECTOR/2, self.S1SECTOR/2)
+            # normalise to range [0,1]
+            #pos_norm = (1+cangle/(np.pi/2))/2.0
+            pos_norm = (1+cangle/(self.S1SECTOR/2))/2.0
+            #pulse = self.PULSE_RANGE[0] + pos_norm * (self.PULSE_RANGE[1]-self.PULSE_RANGE[0])
+            # set servo position by pulse width
+            pulse = self.S1_PULSE_RANGE[0] + pos_norm * (self.S1_PULSE_RANGE[1]-self.S1_PULSE_RANGE[0])
+            pulse = np.clip(pulse, self.S1_PULSE_RANGE[0], self.S1_PULSE_RANGE[1])
+        else:
+            cangle = np.clip(angle, -self.S2SECTOR/2, self.S2SECTOR/2)
+            # normalise to range [0,1]
+            pos_norm = (1+cangle/(self.S2SECTOR/2))/2.0
+            pulse = self.S2_PULSE_RANGE[0] + pos_norm * (self.S2_PULSE_RANGE[1]-self.S2_PULSE_RANGE[0])
+            pulse = np.clip(pulse, self.S2_PULSE_RANGE[0], self.S2_PULSE_RANGE[1])
+
         pulse = np.rint(pulse).astype(np.int)
-        pulse = np.clip(pulse, self.PULSE_RANGE[0], self.PULSE_RANGE[1])
-        if DEBUG: print('set_servo_angle(): angle: {:.3f} clipped angle: {:.3f}  pulse: {}'.format(angle, cangle, pulse))
         self.g.set_servo(servo, int(pulse))
         # publish servo position as joint
         servo_names = {self.S1: "servo1", self.S2: "servo2"}
         self.pub_joints.publish(JointState(name=[servo_names[servo]], position=[cangle]))
+        if DEBUG: print('set_servo_angle({}): angle: {:.3f} clipped angle: {:.3f}  pulse: {}'.format(servo_names[servo],angle, cangle, pulse))
 
     def reset_odometry(self):
         if DEBUG:
