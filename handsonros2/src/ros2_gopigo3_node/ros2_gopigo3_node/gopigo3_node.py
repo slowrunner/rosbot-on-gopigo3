@@ -1,18 +1,27 @@
 #!/usr/bin/env python3
 #
-# FILE: ros2_gopigo3_node.py
+# FILE: ros2_gopigo3_node/gopigo3_node.py
 #
 # DOC:
-#    ROS2 Migration of the ROS1 gopigo3_driver.py node
+#    ROS2 Migration of a ROS1 gopigo3 node
 #    See: https://github.com/ros-gopigo3/gopigo3-pi-code/blob/master/pkg_mygopigo/src/gopigo3_driver.py
 # AUTHORS:
 #    Alan McDonley: ROS2 Migration 2021
 #    Christian Rauch: Original author of ROS1 gopigo3_node.py 2018
 #    Quint van Djik and John Cole: edits
+#    Bernardo R Japon: edits for "Hands On ROS for Robotics Programming", Packt Publishing
 #
 # VERSION HISTORY:
 #
-#    2021:  Migration to ROS2, servo parameters
+#    2021:  Migration to ROS2, and
+#               moved custom msgs to ros2_gopigo3_msg,
+#               gpg_config.json comapatibility (gopigo3.py v1.3),
+#               servo parameters
+#               correct battery voltage for reverse polarity protection diode drop
+#               /motor/dps/both, pwm/both, position/both added to minimize heading change
+#               additional initialization information output
+#               1 hz DEBUG mode with additional detail to stdout
+#    2020:  Hands On ROS transform to match book's gopigo3.urdf
 #    2018:  Initial gopigo3_node.py and renamed gopigo3_driver.py
 
 import sys
@@ -66,7 +75,7 @@ class GoPiGo3Node(Node):
     EL = gopigo3.GoPiGo3.LED_EYE_LEFT
     ER = gopigo3.GoPiGo3.LED_EYE_RIGHT
     EW = gopigo3.GoPiGo3.LED_WIFI
-    # Moved the following to __init__() to get from instance instead of class
+    # Moved the following to __init__() to get from instance instead of class (gopigo3.py v1.3 compatibility)
     # WIDTH = gopigo3.GoPiGo3.WHEEL_BASE_WIDTH * 1e-3
     # CIRCUMFERENCE = gopigo3.GoPiGo3.WHEEL_CIRCUMFERENCE * 1e-3
     DIODE_DROP = 0.7  # Voltage Drop from reverse polarity protection to make get_voltage() equal actual battery voltage
@@ -79,7 +88,7 @@ class GoPiGo3Node(Node):
     S1RPW = 575
     S2LPW = 2425
     S2RPW = 575
-    S1SECTOR = M_PI      # 180 degrees  (default is full travel)
+    S1SECTOR = M_PI      # 180 degrees  (default is full travel)  10.278 usec/degree
     S2SECTOR = M_PI      # 180 degrees
 
     def __init__(self):
@@ -167,7 +176,8 @@ class GoPiGo3Node(Node):
         self.pub_battery = self.create_publisher(Float64,            'battery_voltage',     qos_profile=10)
         self.pub_motor_status = self.create_publisher(MotorStatusLR, 'motor/status',        qos_profile=10)
         self.pub_odometry = self.create_publisher(Odometry,          "odom",                qos_profile=10)
-        self.pub_joints = self.create_publisher(JointState,          "joint_state",         qos_profile=10)
+        # note: joint_state in ros-gopigo3 and joint_states in Hands-On-ROS pkg_mygopigo
+        self.pub_joints = self.create_publisher(JointState,          "joint_states",        qos_profile=10)
 
         # services
         self.srv_reset = self.create_service(Trigger,      'reset',       self.reset)
@@ -437,7 +447,10 @@ class GoPiGo3Node(Node):
         odom = Odometry(header=Header(stamp=self.get_clock().now().to_msg(), frame_id="odom"), child_frame_id="base_link",
                         pose=self.pose, twist=twist)
 
-        transform = TransformStamped(header=Header(stamp=self.get_clock().now().to_msg(), frame_id="world"), child_frame_id="gopigo")
+        # Note: in ros-gopigo3
+        # transform = TransformStamped(header=Header(stamp=self.get_clock().now().to_msg(), frame_id="world"), child_frame_id="gopigo")
+        # in pkg_mygopigo
+        transform = TransformStamped(header=Header(stamp=self.get_clock().now().to_msg(), frame_id="odom"), child_frame_id="base_link")
         transform.transform.translation.x = self.pose.pose.position.x
         transform.transform.translation.y = self.pose.pose.position.y
         transform.transform.translation.z = self.pose.pose.position.z
