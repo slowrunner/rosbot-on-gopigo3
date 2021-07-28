@@ -29,7 +29,7 @@ import sys
 # sys.path.append('/home/pi/Carl/plib')
 # import runLog
 
-DIODE_DROP = 0.81  # reverse protection diode drop 0.7v usually
+DIODE_DROP = 0.7  # reverse protection diode drop 0.7v usually
 
 # ### Create (protected) instance of EasyGoPiGo3 base class
 egpg = easygopigo3.EasyGoPiGo3(use_mutex=True)
