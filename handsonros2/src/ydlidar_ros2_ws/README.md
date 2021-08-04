@@ -189,6 +189,40 @@ Unplug the LIDAR and replug
 - LAUNCH LIDAR Node (add to runit.sh when runs good)
 ```
 ros2 launch ydlidar_ros2_driver ydlidar_launch.py 
+
+pi@ROSbot:~/rosbot-on-gopigo3$ ros2 launch ydlidar_ros2_driver ydlidar_launch.py 
+[INFO] [launch]: All log files can be found below /home/pi/.ros/log/2021-08-04-10-38-45-809263-ROSbot-7654
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [ydlidar_ros2_driver_node-1]: process started with pid [7677]
+[INFO] [static_transform_publisher-2]: process started with pid [7679]
+[ydlidar_ros2_driver_node-1] [INFO] [1628087926.833046492] [ydlidar_ros2_driver_node]: [YDLIDAR INFO] Current ROS Driver Version: 1.0.1
+[ydlidar_ros2_driver_node-1] 
+[ydlidar_ros2_driver_node-1] YDLidar SDK initializing
+[ydlidar_ros2_driver_node-1] YDLidar SDK has been initialized
+[ydlidar_ros2_driver_node-1] [YDLIDAR]:SDK Version: 1.0.3
+[static_transform_publisher-2] [INFO] [1628087926.878554381] [static_tf_pub_laser]: Spinning until killed publishing transform from 'base_link' to 'laser_frame'
+[ydlidar_ros2_driver_node-1] LiDAR successfully connected
+[ydlidar_ros2_driver_node-1] [YDLIDAR]:Lidar running correctly ! The health status: good
+[ydlidar_ros2_driver_node-1] [YDLIDAR] Connection established in [/dev/ttyUSB0][128000]:
+[ydlidar_ros2_driver_node-1] Firmware version: 1.10
+[ydlidar_ros2_driver_node-1] Hardware version: 1
+[ydlidar_ros2_driver_node-1] Model: X4
+[ydlidar_ros2_driver_node-1] Serial: 2020062200002315
+[ydlidar_ros2_driver_node-1] LiDAR init success!
+[ydlidar_ros2_driver_node-1] [YDLIDAR3]:Fixed Size: 1020
+[ydlidar_ros2_driver_node-1] [YDLIDAR3]:Sample Rate: 5K
+[ydlidar_ros2_driver_node-1] [YDLIDAR INFO] Current Sampling Rate : 5K
+[ydlidar_ros2_driver_node-1] [YDLIDAR INFO] Now YDLIDAR is scanning ......
+^C[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)
+[ydlidar_ros2_driver_node-1] [INFO] [1628087941.729329370] [rclcpp]: signal_handler(signal_value=2)
+[ydlidar_ros2_driver_node-1] [INFO] [1628087941.834658875] [ydlidar_ros2_driver_node]: [YDLIDAR INFO] Now YDLIDAR is stopping .......
+[INFO] [static_transform_publisher-2]: process has finished cleanly [pid 7679]
+[static_transform_publisher-2] [INFO] [1628087941.729325515] [rclcpp]: signal_handler(signal_value=2)
+[ydlidar_ros2_driver_node-1] 281472982034848 thread has been canceled
+[ydlidar_ros2_driver_node-1] [YDLIDAR INFO] Now YDLIDAR Scanning has stopped ......
+[INFO] [ydlidar_ros2_driver_node-1]: process has finished cleanly [pid 7677]
+
+
 ```
 
 - DESKTOP LAUNCH RVIZ2
