@@ -2,4 +2,10 @@
 
 # ~/rosbot-on-gopigo3/handsonros2/install/setup.bash
 killall gopigo3_node
+killall distance_sensor
 
+echo "Don't know how to kill ydlidar_ros2_driver_node, remember to use cntl-c"
+
+# Use when these are set up as lifecycle nodes
+# ros2 lifecycle set gopigo3_node shutdown
+# ros2 lifecycle set ydlidar_ros2_driver_node shutdown

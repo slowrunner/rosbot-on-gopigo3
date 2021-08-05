@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 
 # status.py    Basic Status (thread-safe)
+
+
 #      import status provides printStatus(egpg,ds)
+
 #      ./status.py    will print status once and exit
 #
 #      ./status.py -l (or -loop) will print status every 5 seconds
@@ -9,26 +12,17 @@
 #      ./status.py -d will print status without distance sensor
 #
 #      ./status.py -h (or --help) will print usage
-#
-#      ./status.py -l -v N.N  will loop till N.N x4 times,
-#                             then shutdown
-#      ./status.py -l -n      will not shutdown, warn only
-#
-# After advice from some folks over at raspberrypi.org robotics forum,
-# and thinking about the 168 NiMH cells in my 10 year old Prius,
-# my target discharge depth is 15-20% remaining capacity.
-# 2019-January: ran logBattV.py - 8hrs to yellow light,
-#               a little more to "red and dead"
-# The GoPiGo3 volt() function registered 8.1v at the 15-20% capacity point
-# which would be 8.7v at the battery pack or 1.09v/cell.
-# (GoPiGo3 reverse polarity protection diode drop of 0.6v)
-# This will yield a little more than 6.5 hours of mindless contemplation
-#     by my bot in its corner.  Sacrificing 45-90 minutes of immediate
-#     gratification for longevity.
-#
-#
-# from __future__ import print_function
-# from __future__ import division
+
+"""
+********* ROSbot STATUS *****
+2021-08-05  08:33:37 up 2 min,  1 user,  load average: 1.14, 0.92, 0.38
+Current Battery 12.05v EasyGoPiGo3 Reading 11.24v
+5v Supply: 4.98
+Processor Temp: 38.6'C
+Clock Frequency: 1.30 GHz
+throttled=0x0
+Distance Sensor: nothing within 90 inches
+"""
 
 
 # IMPORTS
