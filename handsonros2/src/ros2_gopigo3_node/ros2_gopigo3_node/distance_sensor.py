@@ -18,7 +18,8 @@ class DistanceSensorNode(Node):
         super().__init__('distance_sensor')
         self.ds = EasyDistanceSensor(use_mutex=True)
         self.msg_range = Range()
-        self.msg_range.header.frame_id = "distance"
+        # setting frame_id to urdf link element "distance_sensor"
+        self.msg_range.header.frame_id = "distance_sensor"
         self.msg_range.radiation_type = Range.INFRARED   # LASER is closer to INFRARED than ULTRASOUND
         self.msg_range.min_range = 0.0200   #         2 cm /   20 mm
         self.msg_range.max_range = 3.000    # 3 m / 300 cm / 3000 mm
@@ -27,15 +28,15 @@ class DistanceSensorNode(Node):
         self.pub = self.create_publisher(Range, '~/distance', qos_profile=10)
         timer_period = 1.0  # 1 second = 1 Hz
         self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.get_logger().info('Created distance_sensor node')
+        self.get_logger().info('Created distance_sensor node at {:.0f} hz'.format(1.0/timer_period))
 
     def timer_callback(self):
         self.reading_mm = self.ds.read_mm()
-        print("distance reading: {} mm".format(self.reading_mm))
+        # print("distance reading: {} mm".format(self.reading_mm))
         self.msg_range.range = self.reading_mm/1000.0
         self.msg_range.header.stamp = self.get_clock().now().to_msg()
         self.pub.publish(self.msg_range)
-        self.get_logger().info('Publishing: {}'.format(self.msg_range))
+        # self.get_logger().info('Publishing: {}'.format(self.msg_range))
 
 
 def main(args=None):
