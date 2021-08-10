@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # ~/rosbot-on-gopigo3/handsonros2/install/setup.bash
+echo "Killing gopigo3_node"
 killall gopigo3_node
+echo "Killing distance_sensor"
 killall distance_sensor
 
 echo "Don't know how to kill ydlidar_ros2_driver_node, remember to use cntl-c"
