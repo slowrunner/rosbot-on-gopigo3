@@ -45,6 +45,16 @@ while True:
     print("\nCtrl-C Detected, exiting Active Key Polling")
     break
 
+print("Polling for JoyPad Keys (CTRL-C to STOP POLLING)")
+while True:
+  try:
+    print("Left-Right:{}:".format(gamepad.absinfo(0).value))
+    print("Up-Down:{}:".format(gamepad.absinfo(1).value))
+    time.sleep(0.1)
+  except KeyboardInterrupt:
+    print("\nCtrl-C Detected, exiting JoyPad Key Polling")
+    break
+
 
 # Stuck in some weird event loop
 print("\nPress Ctrl-C again to EXIT")
