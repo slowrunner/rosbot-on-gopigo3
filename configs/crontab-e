@@ -25,6 +25,7 @@
 @reboot sleep 15  && /home/pi/rosbot-on-gopigo3/nohup_loglife.sh
 @reboot sleep 30  && python3 /home/pi/rosbot-on-gopigo3/plib/center.py
 @reboot sleep 60  && /home/pi/rosbot-on-gopigo3/nohup_safetyShutdown.sh
+@reboot sleep 75 && /home/pi/rosbot-on-gopigo3/nohup_wheellog.sh
 0 * * * * /usr/bin/python3 /home/pi/rosbot-on-gopigo3/cleanlifelog.py
 
 
