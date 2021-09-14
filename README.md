@@ -76,6 +76,6 @@ ROSbot Specs:
   * 2.5 lbs Total
   * 7" wide x 9" Long x 12" High
 
-- Total Cost: $392
+- Total Cost: $415
 
 - First "Life": June 2021 
