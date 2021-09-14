@@ -2,7 +2,7 @@
 Autonomous ROS2 home robot based on GoPiGo3 and RaspberryPi
 
 
-![ROSbot - The ROS2 on GoPiGo3 Robot](Dave_LFQtr.jpg?raw=true)
+<img src="https://github.com/slowrunner/rosbot-on-gopigo3/blob/main/Dave_LFQtr.jpg" width="378" height="504" />
 
 
 ROSbot Specs:
