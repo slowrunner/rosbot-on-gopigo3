@@ -2,7 +2,7 @@
 Autonomous ROS2 home robot based on GoPiGo3 and RaspberryPi
 
 
-![ROSbot - The ROS2 on GoPiGo3 Robot](/Graphics/ROSbot-GoPiGo3-Robot.jpg?raw=true)
+<img src="https://github.com/slowrunner/rosbot-on-gopigo3/blob/main/Dave_LFQtr.jpg" width="378" height="504" />
 
 
 ROSbot Specs:
@@ -16,10 +16,12 @@ ROSbot Specs:
   * Onboard WiFi
 
 - OS: Ubuntu 20.04 LTS 64-bit Server
+- ROS2 Foxy: Uses 100% of one core (uptime 15min load 1.0)
  
 - Control Interfaces: 
   * ssh over WiFi
-  * ROS2 
+  * ROS2 Foxy 
+  * 2.4GHz Wireless USB "SNES" Gamepad 
 
 - Sensors (GoPiGo3 Intrinsic)
   * Battery_Voltage (GoPiGo3 intrinsic)
@@ -32,6 +34,7 @@ ROSbot Specs:
   * Processor Temperature Throttling Active / Latched
   
 - Sensors (Added):
+  * YDLIDAR X4 - 360 degrees, 12cm-10m range on half degree increment, ~8Hz scanning
   * DI Distance Sensor (VL53L0X Infrared Time-Of-Flight)
     25 deg beam width, About 4% accuracy to 7.5 feet (2.3m) 
     Mounted on Tilt/Pan
@@ -47,7 +50,7 @@ ROSbot Specs:
 
 - Actuators/Effectors 
   * ModRobotics Servo Kit
-  * MonkMakes 2.5W Audio Speaker (draws 9.5mA 5v at idle)
+  * USB audio+power speaker
   
 - Available GoPiGo3 Ports
   * I2C: Distance Sensor
@@ -57,21 +60,22 @@ ROSbot Specs:
   * SERVO1: Pan Servo
 
 - Power Source: ModRobotics 3000mAH 11.1v Rechargeable Battery
-  * Cliff at ?v (0.? volts / cell)
-  * Charging at ?A for about ? hours 
-  * Provides around ? hours "playtime"
-  
-- Run Time: (Using ?v "need to shutdown" limit) 
-  * "Thinking" ?
-  * "100% wandering" ? hours
+  * 12.6v to protection circuit cutoff at 8.1-8.4v! 
+  * Roughly 24wH 
 
+- Run Time: (Using 9.75v 15minutes left "need to shutdown" limit) 
+  * "Thinking" 5+ hours  (averages 414mA at 11.1v 4.6w 24wH)
+  * "100% wandering" TBD hours
 
 - Recharger:  
   * ModRobotics Li-ion Battery Charging adapter
-  * 
+  * 12.6v 1A output with charging/charged LED
+  * About 3 hours recharge from safety shutdown
 
 - Physical:
-  * X.X Ounces Total
-  * 6" wide x 9" Long x 12" High
+  * 2.5 lbs Total
+  * 7" wide x 9" Long x 12" High
+
+- Total Cost: $415
 
 - First "Life": June 2021 
