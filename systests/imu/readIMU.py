@@ -66,6 +66,10 @@ PORT = "AD1"
 # to list readings once per second without overwriting, set False
 OVERWRITE = True
 
+# Set True to cause all initialization actions to be reported
+# VERBOSITY = False
+VERBOSITY = True
+
 def readIMU(imu):
         # Read the magnetometer, gyroscope, accelerometer, euler, and temperature values
         mag    = imu.safe_read_magnetometer()
@@ -126,7 +130,7 @@ def main():
         time.sleep(2)
 
     # imu = EasyIMUSensor(port = PORT, use_mutex = True)
-    imu = SafeIMUSensor(port = PORT, use_mutex = True, verbose = True, init = False)
+    imu = SafeIMUSensor(port = PORT, use_mutex = True, verbose = VERBOSITY, init = False)
 
     time.sleep(1.0)  # allow for all measurements to initialize
 
