@@ -6,7 +6,7 @@
 #
 # Python drivers for the BNO055 IMU sensor
 #
-# Modifications by Alan
+# Modifications by Alan for ROS and to allow NON-NDOF modes
 #
 # set_mode() sets self._mode
 #
@@ -220,7 +220,11 @@ class BNO055(object):
         init (default True) -- False initializes software object only, does not alter hardware configuration.
         """
 
-        if verbose: print("BNO055 Instantiating on BUS {} with ADRESS {} to MODE {} using UNITS {} HW INIT {}".format(bus, address, mode, units, init))
+        if verbose:
+            if (init == True):
+                print("BNO055 Instantiating on BUS {} with ADDRESS {} to MODE {} using UNITS {} HW INIT {}".format(bus, address, mode, units, init))
+            else:
+                print("BNO055 Instantiating on BUS {} with ADDRESS {} using UNITS {} HW INIT {}".format(bus, address, units, init))
 
         # create an I2C bus object and set the address
         self.i2c_bus = di_i2c.DI_I2C(bus = bus, address = address)
@@ -491,6 +495,19 @@ class BNO055(object):
           _________ /______|/    //
                    /___________ //
                   |____________|/
+
+
+        NOTE: DI IMU
+          - Y is direction of arrow head
+          - X is toward right side when head up looking at the chip side
+          - Z is coming at you when looking at the chip side
+
+        DI IMU For ROS On GoPiGo3 (No axis remap needed if mounted like this)
+          - Mount with chip side up, arrow head pointing to left side of bot
+          - X is forward
+          - Y is toward left side
+          - Z is up
+
         """
         # Get the axis remap register value.
         map_config = self.i2c_bus.read_8(REG_AXIS_MAP_CONFIG)

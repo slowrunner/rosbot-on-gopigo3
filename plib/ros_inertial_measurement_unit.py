@@ -6,10 +6,10 @@
 #
 # Python drivers for the Dexter Industries Inertial Measurement Unit sensor
 
-# MY_INERTIAL_MEASUREMENT_UNIT
+# ROS_INERTIAL_MEASUREMENT_UNIT
 #
 # modified to allow initializing the BNO055 to a mode other than the default, full NDOF operation
-# modified to use myBNO055 (to set self._mode)
+# modified to use rosBNO055 (to set self._mode)
 #
 
 from __future__ import print_function
@@ -17,7 +17,7 @@ from __future__ import division
 import sys
 sys.path.append('/home/pi/rosbot-on-gopigo3/plib/')
 
-import myBNO055 as BNO055
+import rosBNO055 as BNO055
 
 
 class InertialMeasurementUnit(object):
@@ -36,11 +36,15 @@ class InertialMeasurementUnit(object):
 
         """
         try:
-            if verbose: print("InertialMeasurementUnit INSTANTIATING ON BUS {} TO MODE {} INIT {}".format(bus, mode, init))
+            if verbose:
+                if (init==True):
+                    print("InertialMeasurementUnit INSTANTIATING ON BUS {} TO MODE {} INIT {}".format(bus, mode, init))
+                else:
+                    print("InertialMeasurementUnit INSTANTIATING ON BUS {} INIT {} (no mode change)".format(bus, init))
             self.BNO055 = BNO055.BNO055(bus = bus, mode = mode, init = init, verbose = verbose)
         except RuntimeError:
             raise RuntimeError('Failed to initialize Dexter Industries IMU sensor')
-        if verbose: print("InertialMeasurementUnit Instatiation Complete")
+        if verbose: print("InertialMeasurementUnit Instantiation Complete")
 
     def read_euler(self):
         """

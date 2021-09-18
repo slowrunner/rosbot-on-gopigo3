@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# FILE:  my_safe_inertial_measurement_unit.py
+# FILE:  ros_safe_inertial_measurement_unit.py
 
 # https://www.dexterindustries.com
 #
@@ -16,6 +16,18 @@
   MUTEX SUPPORT WHEN NEEDED
   Allow non NDOF modes
   Allow SW Obj init without HW initialization
+  Defaults to no axis remap for ROS
+
+  NOTE: DI IMU Hardware
+   - Y is direction of arrow head
+   - X is toward right side when head up looking at the chip side
+   - Z is coming at you when looking at the chip side
+
+  DI IMU For ROS On GoPiGo3 (No axis remap needed if mounted like this)
+   - Mount with chip side up, arrow head pointing to left side of bot
+   - X is forward
+   - Y is toward left side
+   - Z is up
 
 
 DI Methods Implemented (Unchanged from easy_inertial_measurement_unit.py)
@@ -56,8 +68,8 @@ Expanded mutex protected Methods Implemented:
 # from di_sensors import inertial_measurement_unit
 import sys
 sys.path.append('/home/pi/rosbot-on-gopigo3/plib/')
-import my_inertial_measurement_unit as inertial_measurement_unit
-import myBNO055 as BNO055
+import ros_inertial_measurement_unit as inertial_measurement_unit
+import rosBNO055 as BNO055
 from math import atan2, pi
 from time import sleep
 import json
@@ -115,21 +127,25 @@ class SafeIMUSensor(inertial_measurement_unit.InertialMeasurementUnit):
 
         ifMutexAcquire(self.use_mutex)
         try:
-            if verbose: print("SafeIMUSensor INSTANTIATING ON PORT {} OR BUS {} WITH MUTEX {} TO MODE {} INIT {}".format(port, bus, use_mutex, OP_MODE_STRINGS[mode], init))
+            if verbose:
+                if (init==True): 
+                    print("SafeIMUSensor INSTANTIATING ON PORT {} OR BUS {} WITH MUTEX {} TO MODE {} INIT {}".format(port, bus, use_mutex, OP_MODE_STRINGS[mode], init))
+                else:
+                    print("SafeIMUSensor INSTANTIATING ON PORT {} OR BUS {} WITH MUTEX {} INIT {} (no mode change)".format(port, bus, use_mutex, init))
+
             # super(self.__class__, self).__init__(bus = bus, mode = mode)
             super().__init__(bus = bus, mode = mode, verbose = verbose, init=init)
 
-            # on GPG3 we ask that the IMU be at the back of the robot, facing outward
-            # We do not support the IMU on GPG2  but leaving the if statement in case
-            if (bus != "RPI_1SW") and (init==True):
-                if verbose: print("Performing axis_remap for GoPiGo3 Configuration")
-                self.BNO055.set_axis_remap( BNO055.AXIS_REMAP_X,
-                                        BNO055.AXIS_REMAP_Z,
-                                        BNO055.AXIS_REMAP_Y,
-                                        BNO055.AXIS_REMAP_POSITIVE,
-                                        BNO055.AXIS_REMAP_NEGATIVE,
-                                        BNO055.AXIS_REMAP_POSITIVE,verbose=verbose)
-                if verbose: print("Completed axis_remap")
+            # NON-ROS: on GPG3 we ask that the IMU be at the back of the robot, facing outward
+            # if (bus != "RPI_1SW") and (init==True):
+            #     if verbose: print("Performing axis_remap for GoPiGo3 Configuration")
+            #     self.BNO055.set_axis_remap( BNO055.AXIS_REMAP_X,
+            #                             BNO055.AXIS_REMAP_Z,
+            #                             BNO055.AXIS_REMAP_Y,
+            #                             BNO055.AXIS_REMAP_POSITIVE,
+            #                             BNO055.AXIS_REMAP_NEGATIVE,
+            #                             BNO055.AXIS_REMAP_POSITIVE,verbose=verbose)
+            #     if verbose: print("Completed axis_remap")
 
         except Exception as e:
             print("Initiating error: "+str(e))
@@ -311,8 +327,8 @@ class SafeIMUSensor(inertial_measurement_unit.InertialMeasurementUnit):
         sleep(1.0)
         if verbose: print("safe_resetBNO055 Complete\n\n")
 
-    # Remap Axis for actual orientation, Default: GoPiGo3 Point-Up, Chip-Toward Front
-    # Use safe_axis_remap after safe_resetBNO055()
+    # NON-ROS: Remap Axis for actual orientation, Default: GoPiGo3 Point-Up, Chip-Toward Front
+    # NON-ROS: Use safe_axis_remap after safe_resetBNO055()
     def safe_axis_remap(self,x=BNO055.AXIS_REMAP_X, y=BNO055.AXIS_REMAP_Z, z=BNO055.AXIS_REMAP_Y, \
                              xo=BNO055.AXIS_REMAP_POSITIVE, yo=BNO055.AXIS_REMAP_NEGATIVE, zo=BNO055.AXIS_REMAP_POSITIVE, \
                              verbose=False):

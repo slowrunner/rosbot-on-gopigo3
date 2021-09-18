@@ -11,8 +11,8 @@
 # ./resetIMU.py  or python3 reestIMU.py
 #
 #
-# Uses Alan's extended mutex protected SafeIMUSensor() class from my_safe_inertial_measurement_unit.py
-# and my_inertial_measurement_unit.py that allows reseting the chip without changing mode.
+# Uses Alan's extended mutex protected SafeIMUSensor() class from ros_safe_inertial_measurement_unit.py
+# and ros_inertial_measurement_unit.py that allows reseting the chip without changing mode.
 #
 # Note Does not alter operation mode
 
@@ -23,8 +23,8 @@ import time
 from datetime import datetime as dt
 import sys
 sys.path.append('/home/pi/rosbot-on-gopigo3/plib')
-from my_safe_inertial_measurement_unit import SafeIMUSensor
-import myBNO055 as BNO055
+from ros_safe_inertial_measurement_unit import SafeIMUSensor
+import rosBNO055 as BNO055
 
 VERBOSITY = True
 
@@ -47,8 +47,8 @@ def main():
         imu.printCalStatus()
         # Reseting chip (Heading:0, Roll:0, Pitch:90)
         imu.safe_resetBNO055(verbose=VERBOSITY)
-        # Remap for GoPiGo3: Point-Up, Chip-Toward Front
-        imu.safe_axis_remap(verbose=VERBOSITY)
+        # Remap for NON-ROS GoPiGo3: Point-Up, Chip-Toward Front
+        # imu.safe_axis_remap(verbose=VERBOSITY)
 
         imu.printCalStatus()
 

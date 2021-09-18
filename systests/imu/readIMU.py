@@ -21,8 +21,22 @@
 # If a rotation greater than 0.5 dps is seen, the time will be printed forcing the values to remain visible
 #
 # Ensure PORT ("AD1") and OVERWRITE (True) are desired values
+#
+# ROS: no axis remap
+"""
+        NOTE: DI IMU Hardware
+          - Y is direction of arrow head
+          - X is toward right side when head up looking at the chip side
+          - Z is coming at you when looking at the chip side
 
+        DI IMU For ROS On GoPiGo3 (No axis remap needed if mounted like this)
+          - Mount with chip side up, arrow head pointing to left side of bot
+          - X is forward
+          - Y is toward left side
+          - Z is up
+"""
 
+# THIS readIMU.py DOES NOT CHANGE IMU MODE
 
 from __future__ import print_function
 from __future__ import division
@@ -40,9 +54,9 @@ except:
 # import easygopigo3 # import the EasyGoPiGo3 class
 # di_sensors EasyIMUSensor() class does not implement all the needed mutex protected methods
 # from di_sensors.easy_inertial_measurement_unit import EasyIMUSensor
-# so using my_safe_inertial_measurement_unit.py
+# so using ros_safe_inertial_measurement_unit.py
 
-from my_safe_inertial_measurement_unit import SafeIMUSensor
+from ros_safe_inertial_measurement_unit import SafeIMUSensor
 import runLog
 
 # Port must be "AD1" or "AD2" to force software I2C that properly implements clock stretch
@@ -112,7 +126,7 @@ def main():
         time.sleep(2)
 
     # imu = EasyIMUSensor(port = PORT, use_mutex = True)
-    imu = SafeIMUSensor(port = PORT, use_mutex = True)
+    imu = SafeIMUSensor(port = PORT, use_mutex = True, verbose = True, init = False)
 
     time.sleep(1.0)  # allow for all measurements to initialize
 
