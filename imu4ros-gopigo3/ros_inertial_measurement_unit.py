@@ -14,8 +14,6 @@
 
 from __future__ import print_function
 from __future__ import division
-import sys
-sys.path.append('/home/pi/rosbot-on-gopigo3/plib/')
 
 import rosBNO055 as BNO055
 

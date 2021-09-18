@@ -66,8 +66,6 @@ Expanded mutex protected Methods Implemented:
 """
 
 # from di_sensors import inertial_measurement_unit
-import sys
-sys.path.append('/home/pi/rosbot-on-gopigo3/plib/')
 import ros_inertial_measurement_unit as inertial_measurement_unit
 import rosBNO055 as BNO055
 from math import atan2, pi
