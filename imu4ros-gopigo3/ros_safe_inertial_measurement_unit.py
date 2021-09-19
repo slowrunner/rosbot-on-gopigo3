@@ -2,9 +2,9 @@
 
 # FILE:  ros_safe_inertial_measurement_unit.py
 
-# https://www.dexterindustries.com
+# With kudos to https://www.dexterindustries.com
 #
-# Copyright (c) 2020 Dexter Industries
+# Portions Copyright (c) 2020 Dexter Industries
 # Released under the MIT license (http://choosealicense.com/licenses/mit/).
 # For more information see https://github.com/DexterInd/DI_Sensors/blob/master/LICENSE.md
 #
@@ -32,7 +32,6 @@
 
 DI Methods Implemented (Unchanged from easy_inertial_measurement_unit.py)
  - imu.reconfig_bus()
- - imu.safe_calibrate()
  - imu.safe_calibration_status()
  - imu.convert_heading(in_heading)
  - imu.safe_read_euler()
@@ -49,8 +48,8 @@ Expanded mutex protected Methods Implemented:
  - imu.loadAndSetCalDataJSON()            Resets calibrarion from data in file ./calData.json
  - imu.safe_resetBNO055()                 reset the IMU and print calibration status
  - imu.safe_axis_remap()                  remap axis for actual chip orientation (default GoPiGo3)
- - imu.my_safe_calibrate()                uses the NDOF SYS value instead of just mags value
- - imu.my_safe_sgam_calibration_status()  returns all four cal status: sys, gyro, accels, mags
+ - imu.safe_calibrate()                   uses the NDOF SYS value instead of just mags value as in DI easy_i_m_u
+ - imu.safe_sgam_calibration_status()  returns all four cal status: sys, gyro, accels, mags
  - imu.safe_read_quaternion()             returns the quaternian values x, y, z, w
  - imu.safe_read_gyroscope()              returns the gyroscope values x, y, z
  - imu.safe_read_accelerometer()          returns the accels values x, y, z
@@ -162,7 +161,7 @@ class SafeIMUSensor(inertial_measurement_unit.InertialMeasurementUnit):
         return self.exceptionCount
 
     def printCalStatus(self, cr=True):
-        sysCalStat,gyroCalStat,accCalStat,magCalStat = self.my_safe_sgam_calibration_status()
+        sysCalStat,gyroCalStat,accCalStat,magCalStat = self.safe_sgam_calibration_status()
         if cr:
             print("BNO055 Calibration Status (sys,gyro,acc,mag): ({},{},{},{})".format(sysCalStat,gyroCalStat,accCalStat,magCalStat))
         else:
@@ -385,7 +384,7 @@ class SafeIMUSensor(inertial_measurement_unit.InertialMeasurementUnit):
             if new_status != status:
                 status = new_status
 
-    def my_safe_calibrate(self, verbose=False):
+    def safe_calibrate(self, verbose=False):
         """Once called, the method returns when the NDOF SYS of the `InertialMeasurementUnit Sensor`_ gets fully calibrated.
         Rotate the sensor in the air to two orthoganal directions of each axis.
 
@@ -394,7 +393,8 @@ class SafeIMUSensor(inertial_measurement_unit.InertialMeasurementUnit):
            but its purpose is to block a given script until the sensor reports it has fully calibrated.
 
            If you wish to block your code until the sensor calibrates and still have control over your script, use
-           :py:meth:`my_safe_inertial_measurement_unit.SafeIMUSensor.my_safe_sgam_calibration_status` method along with a ``while`` loop to continuously check it.
+           :py:meth:`ros_safe_inertial_measurement_unit.SafeIMUSensor.safe_sgam_calibration_status` method along with  
+            a ``while`` loop to continuously check it.
 
         """
 
@@ -429,8 +429,8 @@ class SafeIMUSensor(inertial_measurement_unit.InertialMeasurementUnit):
             ifMutexRelease(self.use_mutex)
         return status
 
-    def my_safe_sgam_calibration_status(self):
-        """Returns the calibration levels of the `InertialMeasurementUnit Sensor`_.
+    def safe_sgam_calibration_status(self):
+        """Returns all calibration levels of the `InertialMeasurementUnit Sensor`_.
 
         :returns: Calibration levels sysCal, gyroCal, accCal, magCal Range is **0-3** and **-1** is returned when the sensor can't be accessed.
         :rtype: int
