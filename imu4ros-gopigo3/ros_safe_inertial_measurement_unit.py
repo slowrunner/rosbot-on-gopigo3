@@ -51,6 +51,7 @@ Expanded mutex protected Methods Implemented:
  - imu.safe_axis_remap()                  remap axis for actual chip orientation (default GoPiGo3)
  - imu.my_safe_calibrate()                uses the NDOF SYS value instead of just mags value
  - imu.my_safe_sgam_calibration_status()  returns all four cal status: sys, gyro, accels, mags
+ - imu.safe_read_quaternion()             returns the quaternian values x, y, z, w
  - imu.safe_read_gyroscope()              returns the gyroscope values x, y, z
  - imu.safe_read_accelerometer()          returns the accels values x, y, z
  - imu.safe_read_linear_acceleration()    returns the linear accel values x, y, z
@@ -500,6 +501,27 @@ class SafeIMUSensor(inertial_measurement_unit.InertialMeasurementUnit):
         finally:
             ifMutexRelease(self.use_mutex)
         return x,y,z
+
+    def safe_read_quaternion(self):
+        """Read the quaternion values.
+
+        :returns: current orientation as tuple of X, Y, Z, W quaternion values..
+        :rtype: (float,float,float,float)
+        :raises ~exceptions.OSError: When the sensor is not reachable.
+
+        """
+
+        ifMutexAcquire(self.use_mutex)
+        try:
+            x, y, z, w = self.read_quaternion()
+        except Exception as e:
+            # print("safe read quaternion: {}".format(str(e)))
+            x, y, z, w = 0, 0, 0, 0
+            self.exceptionCount += 1
+            # raise
+        finally:
+            ifMutexRelease(self.use_mutex)
+        return x,y,z,w
 
     def safe_read_gyroscope(self):
         """Read the gyro values.
