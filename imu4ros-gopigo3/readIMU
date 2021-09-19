@@ -145,7 +145,7 @@ def main():
                 print("\n{}: Exception Count: {}".format(dt.now(),exCnt))
 
             # if rotation detected print time forcing last values to remain visible
-            if (abs(imu.safe_read_gyroscope()[2]) > 0.5): print("\n                                              ** {} **\n".format(dt.now().strftime('%m-%d-%Y %H:%M:%S.%f')[:-3]))
+            if (abs(imu.safe_read_gyroscope()[2]) > 1.0): print("\n                                              ** {} **\n".format(dt.now().strftime('%m-%d-%Y %H:%M:%S.%f')[:-3]))
 
         print("\n")
 
