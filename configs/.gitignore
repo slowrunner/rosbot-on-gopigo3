@@ -1,0 +1,2 @@
+# ignore (contains security info)
+etc_netplan_50-cloud-init.yaml
