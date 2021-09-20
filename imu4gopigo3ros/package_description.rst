@@ -1,10 +1,8 @@
 # Unofficial "Safe" Python3 BNO055 IMU Interface and Utiliites For GoPiGo3
 
-The BNO055 Inertial Measurement Unit requires "clock stretching I<sup>2</sup>C which the GoPiGo3 robot supports on ports AD1 and AD2.    
-Breakthroug transfer errors still occur occasionaly.  
+The BNO055 Inertial Measurement Unit requires "clock stretching I<sup>2</sup>C which the GoPiGo3 robot supports on ports AD1 and AD2.  Breakthrough transfer errors still occur occasionaly.  
 
-This package offers "safe" (mutex protected) I<sup>2</sup>C access to the Dexter Industries / Modular Robotics BNO055 Inertial Measurement Unit,  
-in the presence of other I<sup>2</sup>C sensors on the GoPiGo3 robot (such as the DI Distance Sensor).
+This package offers "safe" (mutex protected) I<sup>2</sup>C access to the Dexter Industries / Modular Robotics BNO055 Inertial Measurement Unit, in the presence of other I<sup>2</sup>C sensors on the GoPiGo3 robot (such as the DI Distance Sensor).
 
 ```
 CHIRALITY:
