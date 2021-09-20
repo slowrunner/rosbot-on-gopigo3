@@ -1,7 +1,6 @@
 # BNO055 IMU Interface and Utiliites For ROS On GoPiGo3
 
-The BNO055 Inertial Measurement Unit requires "clock stretching I<sup>2</sup>C  
-which the GoPiGo3 robot supports on ports AD1 and AD2.    
+The BNO055 Inertial Measurement Unit requires "clock stretching I<sup>2</sup>C which the GoPiGo3 robot supports on ports AD1 and AD2.    
 Breakthroug transfer errors still occur occasionaly.  
 
 This package offers "safe" (mutex protected) I<sup>2</sup>C access to the 
@@ -66,7 +65,7 @@ Expanded mutex protected Methods Implemented:
  - imu.safe_resetBNO055()                 reset the IMU and print calibration status
  - imu.safe_axis_remap()                  remap axis for actual chip orientation (default GoPiGo3)
  - imu.safe_calibrate()                   uses the NDOF SYS value instead of just mags value as in DI easy_i_m_u
- - imu.safe_sgam_calibration_status()  returns all four cal status: sys, gyro, accels, mags
+ - imu.safe_sgam_calibration_status()     returns all four cal status: sys, gyro, accels, mags
  - imu.safe_read_quaternion()             returns the quaternian values x, y, z, w
  - imu.safe_read_gyroscope()              returns the gyroscope values x, y, z
  - imu.safe_read_accelerometer()          returns the accels values x, y, z
@@ -80,4 +79,5 @@ Expanded mutex protected Methods Implemented:
  - imu.safe_read_imu()                    returns tuple of all readings
  - imu.safe_print_imu_readings()          prints tuple of all readings passed in
  - imu.readAndPrint()                     read and print with options for num times, delay, and EOL
+
 '''
