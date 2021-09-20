@@ -80,4 +80,4 @@ Expanded mutex protected Methods Implemented:
  - imu.safe_print_imu_readings()          prints tuple of all readings passed in
  - imu.readAndPrint()                     read and print with options for num times, delay, and EOL
 
-'''
+```
