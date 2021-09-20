@@ -43,6 +43,23 @@ Features
   * Allow SW Obj init without HW initialization
   * Defaults to no axis remap
 
+Utilities:
+  * startIMU - Put the IMU in NDOF or IMUPLUS (no mags) mode
+    usage: startIMU [-h] [-i] [-v] [-p {AD1,AD2}]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -i, --imuplus         start in imuplus mode (no mags)
+      -v, --verbose         detailed output
+      -p {AD1,AD2}, --port {AD1,AD2}
+                            port 'AD1' (default) or 'AD2' only
+
+  * resetIMU - Reset the IMU without changing mode
+
+  * readIMU - continuous read of IMU without changing mode
+
+  * calibrateIMU - Walk user through NDOF mode calibration
+    (no motion, then perform tilting figure-eight in air)
 
 API:
 
