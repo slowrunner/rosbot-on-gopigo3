@@ -8,6 +8,8 @@ ros2 run ros2_gopigo3_node gopigo3_node --ros-args -p S1LPW:=2094 -p S1RPW:=750 
 
 ros2 run ros2_gopigo3_node distance_sensor &
 
+ros2 run ros2_gopigo3_node ultrasonic_ranger &
+
 # start SNES gamepad node (cntrl-c to stop this script will kill it automagically)
 ros2 launch teleop_twist_joy teleop-launch.py joy_config:="snes" &
 

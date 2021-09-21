@@ -5,6 +5,8 @@ echo "Killing gopigo3_node"
 killall gopigo3_node
 echo "Killing distance_sensor"
 killall distance_sensor
+echo "Killing ultrasonic_ranger"
+killall ultrasonic_ranger
 
 echo "Don't know how to kill ydlidar_ros2_driver_node, remember to use cntl-c"
 

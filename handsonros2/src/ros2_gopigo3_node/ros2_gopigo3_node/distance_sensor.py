@@ -26,7 +26,7 @@ class DistanceSensorNode(Node):
         # self.msg_field_of_view = from_degrees(25.0)     # +/- 12.5 degree FOV (~60cm at max range)
         self.msg_range.field_of_view = math.radians(25.0)     # +/- 12.5 degree FOV (~60cm at max range)
         self.pub = self.create_publisher(Range, '~/distance', qos_profile=10)
-        timer_period = 1.0  # 1 second = 1 Hz
+        timer_period = 0.05  # 0.05 second = 20 Hz
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.get_logger().info('Created distance_sensor node at {:.0f} hz'.format(1.0/timer_period))
 
