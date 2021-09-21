@@ -62,6 +62,7 @@ Utilities:
 
 
 Installation:
+
 $ sudo pip3 install imu4gopigo3ros
 
 
@@ -89,10 +90,11 @@ Test:
 
 
 Remove:
+
 $ sudo pip3 uninstall imu4gopigo3ros
 
 
-
+=============
 
 API:
 
@@ -105,29 +107,29 @@ DI Methods Implemented (Unchanged from easy_inertial_measurement_unit.py)
  - imu.safe_north_point()
 
 Expanded mutex protected Methods Implemented:
- - SafeIMUSensor()                        EasyIMUSensor() that allows all operation modes
- - imu.resetExceptionCount()              reset count of recent I2C exceptions
- - imu.getExceptionCount()                get number of recent I2C exceptions
- - imu.printCalStatus()                   prints sys, gyro, acc, mag status 0=not cal, 3=fully calibrated
- - imu.dumpCalDataJSON()                  writes out calibration data to ./calData.json
- - imu.loadCalDataJSON()                  returns calibration data from file ./calData.json
- - imu.loadAndSetCalDataJSON()            Resets calibrarion from data in file ./calData.json
- - imu.safe_resetBNO055()                 reset the IMU and print calibration status
- - imu.safe_axis_remap()                  remap axis for actual chip orientation (default GoPiGo3)
- - imu.safe_calibrate()                   uses the NDOF SYS value instead of just mags value as in DI easy_i_m_u
- - imu.safe_sgam_calibration_status()     returns all four cal status: sys, gyro, accels, mags
- - imu.safe_read_quaternion()             returns the quaternian values x, y, z, w
- - imu.safe_read_gyroscope()              returns the gyroscope values x, y, z
- - imu.safe_read_accelerometer()          returns the accels values x, y, z
- - imu.safe_read_linear_acceleration()    returns the linear accel values x, y, z
- - imu.safe_read_temperature()            returns the chip temp degC
- - imu.safe_set_mode()                    change operation mode
- - imu.sefe_get_mode()                    check current operation mode
- - imu.safe_get_system_status()           opt run self test and return system status
- - imu.safe_get_operation_mode()          returns operating mode of hardware
- - imu.safe_get_op_mode_str()             returns string name of hardware operating mode
- - imu.safe_read_imu()                    returns tuple of all readings
- - imu.safe_print_imu_readings()          prints tuple of all readings passed in
- - imu.readAndPrint()                     read and print with options for num times, delay, and EOL
+ - SafeIMUSensor()                        # EasyIMUSensor() that allows all operation modes
+ - imu.resetExceptionCount()              # Reset count of recent I2C exceptions
+ - imu.getExceptionCount()                # get number of recent I2C exceptions
+ - imu.printCalStatus()                   # prints sys, gyro, acc, mag status 0=not cal, 3=fully calibrated`
+ - imu.dumpCalDataJSON()                  # writes out calibration data to ./calData.json
+ - imu.loadCalDataJSON()                  # returns calibration data from file ./calData.json
+ - imu.loadAndSetCalDataJSON()            # Resets calibrarion from data in file ./calData.json
+ - imu.safe_resetBNO055()                 # reset the IMU and print calibration status
+ - imu.safe_axis_remap()                  # remap axis for actual chip orientation (default GoPiGo3)
+ - imu.safe_calibrate()                   # uses the NDOF SYS value instead of just mags value as in DI easy_i_m_u
+ - imu.safe_sgam_calibration_status()     # returns all four cal status: sys, gyro, accels, mags
+ - imu.safe_read_quaternion()             # returns the quaternian values x, y, z, w
+ - imu.safe_read_gyroscope()              # returns the gyroscope values x, y, z
+ - imu.safe_read_accelerometer()          # returns the accels values x, y, z
+ - imu.safe_read_linear_acceleration()    # returns the linear accel values x, y, z
+ - imu.safe_read_temperature()            # returns the chip temp degC
+ - imu.safe_set_mode()                    # change operation mode
+ - imu.sefe_get_mode()                    # check current operation mode
+ - imu.safe_get_system_status()           # opt run self test and return system status
+ - imu.safe_get_operation_mode()          # returns operating mode of hardware
+ - imu.safe_get_op_mode_str()             # returns string name of hardware operating mode
+ - imu.safe_read_imu()                    # returns tuple of all readings
+ - imu.safe_print_imu_readings()          # prints tuple of all readings passed in
+ - imu.readAndPrint()                     # read and print with options for num times, delay, and EOL
 
 ```
