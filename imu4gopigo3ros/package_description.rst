@@ -59,8 +59,12 @@ Utilities:
   * calibrateIMU - Walk user through NDOF mode calibration
     (no motion, then perform tilting figure-eight in air)
 
+
+
 Installation:
 $ sudo pip3 install imu4gopigo3ros
+
+
 
 Test:
 
@@ -69,16 +73,26 @@ Test:
 * resetIMU
 * calibrateIMU
 * startIMU -i
-* python3
->>>import ros_safe_inertial_measurement_unit as imupkg
->>>imu=imupkg.SafeIMUSensor()
->>>imu.readAndPrint()
-ctrl-c
-ctrl-d
+* python3  
+
+  >>>import ros_safe_inertial_measurement_unit as imupkg  
+  
+  >>>imu=imupkg.SafeIMUSensor()  
+  
+  >>>imu.readAndPrint()  
+  
+  ctrl-c  
+  
+  ctrl-d  
  
+
+
 
 Remove:
 $ sudo pip3 uninstall imu4gopigo3ros
+
+
+
 
 API:
 
