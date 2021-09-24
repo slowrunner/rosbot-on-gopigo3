@@ -22,7 +22,7 @@ from ros_safe_inertial_measurement_unit import SafeIMUSensor
 import math
 from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
-
+from datetime import datetime as dt
 
 class IMUSensorNode(Node):
 
@@ -42,13 +42,13 @@ class IMUSensorNode(Node):
         self.mag_pub = self.create_publisher(MagneticField, '~/magnetometer', qos_profile=10)
         # TODO: self.pub = self.create_publisher(DiagnosticStatus, '~/status', qos_profile=10)
         # Output Rate - Fusion in NDOF or IMUPLUS: 100Hz, Acc/Gyr: 100Hz,  Mags: 20Hz
-        timer_period = 1.0 # 0.03333  #  second = 30 Hz
+        timer_period = 0.03333  #  second = 30 Hz
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.get_logger().info('Created imu_sensor node at {:.0f} hz'.format(1.0/timer_period))
 
 
         self.br = TransformBroadcaster(self)
-
+        self.exCnt = 0
 
     def timer_callback(self):
         # Following Hands-On-ROS, performs multiple reads - perhaps should be reading all at once?
@@ -69,18 +69,18 @@ class IMUSensorNode(Node):
         # self.get_logger().info('Publishing: {}'.format(self.msg_range))
 
         self.msg_imu.header = self.hdr
-        self.msg_imu.linear_acceleration.x = self.accel[0]
-        self.msg_imu.linear_acceleration.y = self.accel[1]
-        self.msg_imu.linear_acceleration.z = self.accel[2]
+        self.msg_imu.linear_acceleration.x = float(self.accel[0])
+        self.msg_imu.linear_acceleration.y = float(self.accel[1])
+        self.msg_imu.linear_acceleration.z = float(self.accel[2])
 
         self.msg_imu.angular_velocity.x = math.radians(self.gyro[0])
         self.msg_imu.angular_velocity.y = math.radians(self.gyro[1])
         self.msg_imu.angular_velocity.z = math.radians(self.gyro[2])
 
-        self.msg_imu.orientation.x = self.q[3]
-        self.msg_imu.orientation.y = self.q[1]
-        self.msg_imu.orientation.z = self.q[2]
-        self.msg_imu.orientation.w = self.q[3]
+        self.msg_imu.orientation.x = float(self.q[3])
+        self.msg_imu.orientation.y = float(self.q[1])
+        self.msg_imu.orientation.z = float(self.q[2])
+        self.msg_imu.orientation.w = float(self.q[3])
 
         self.imu_pub.publish(self.msg_imu)
 
@@ -95,7 +95,10 @@ class IMUSensorNode(Node):
         self.transform.transform.rotation = self.msg_imu.orientation
         self.br.sendTransform(self.transform)
 
-
+        current_exCnt = self.imu.getExceptionCount()
+        if (current_exCnt != self.exCnt):
+            self.exCnt = current_exCnt
+            print("\n{}: IMU Exception Count: {}".format(dt.now(),self.exCnt))
 
 
 

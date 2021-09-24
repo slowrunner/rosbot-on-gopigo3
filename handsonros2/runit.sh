@@ -10,6 +10,8 @@ ros2 run ros2_gopigo3_node distance_sensor &
 
 ros2 run ros2_gopigo3_node ultrasonic_ranger &
 
+ros2 run ros2_gopigo3_node imu_sensor &
+
 # start SNES gamepad node (cntrl-c to stop this script will kill it automagically)
 ros2 launch teleop_twist_joy teleop-launch.py joy_config:="snes" &
 
