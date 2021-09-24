@@ -31,6 +31,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'imu_sensor = ros2_gopigo3_node.imu_sensor:main',
             'ultrasonic_ranger = ros2_gopigo3_node.ultrasonic_ranger:main',
             'distance_sensor = ros2_gopigo3_node.distance_sensor:main',
             'distance_sensor_subscriber = ros2_gopigo3_node.distance_sensor_subscriber:main',
