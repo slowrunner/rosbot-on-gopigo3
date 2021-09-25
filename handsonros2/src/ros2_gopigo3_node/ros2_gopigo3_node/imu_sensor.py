@@ -65,7 +65,6 @@ class IMUSensorNode(Node):
 
         self.msg_temp.header=self.hdr
         self.msg_temp.temperature = float(self.temp)
-        self.temp_pub.publish(self.msg_temp)
         # self.get_logger().info('Publishing: {}'.format(self.msg_range))
 
         self.msg_imu.header = self.hdr
@@ -77,28 +76,31 @@ class IMUSensorNode(Node):
         self.msg_imu.angular_velocity.y = math.radians(self.gyro[1])
         self.msg_imu.angular_velocity.z = math.radians(self.gyro[2])
 
-        self.msg_imu.orientation.x = float(self.q[3])
+        self.msg_imu.orientation.x = float(self.q[0])
         self.msg_imu.orientation.y = float(self.q[1])
         self.msg_imu.orientation.z = float(self.q[2])
         self.msg_imu.orientation.w = float(self.q[3])
 
-        self.imu_pub.publish(self.msg_imu)
 
         self.msg_magn.header = self.hdr
         self.msg_magn.magnetic_field.x = self.mag[0]*1e-6
         self.msg_magn.magnetic_field.y = self.mag[1]*1e-6
         self.msg_magn.magnetic_field.z = self.mag[2]*1e-6
 
-        self.mag_pub.publish(self.msg_magn)
-
-        self.transform = TransformStamped(header=Header(stamp=self.hdr.stamp, frame_id="world"), child_frame_id=self.hdr.frame_id)
-        self.transform.transform.rotation = self.msg_imu.orientation
-        self.br.sendTransform(self.transform)
 
         current_exCnt = self.imu.getExceptionCount()
         if (current_exCnt != self.exCnt):
             self.exCnt = current_exCnt
             print("\n{}: IMU Exception Count: {}".format(dt.now(),self.exCnt))
+        else:
+            # no exception so publish
+            self.temp_pub.publish(self.msg_temp)
+            self.imu_pub.publish(self.msg_imu)
+            self.mag_pub.publish(self.msg_magn)
+
+            # self.transform = TransformStamped(header=Header(stamp=self.hdr.stamp, frame_id="world"), child_frame_id=self.hdr.frame_id)
+            # self.transform.transform.rotation = self.msg_imu.orientation
+            # self.br.sendTransform(self.transform)
 
 
 
