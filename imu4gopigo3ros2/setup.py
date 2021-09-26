@@ -9,9 +9,9 @@ except IOError:
 
 
 setuptools.setup(
-     name='imu4gopigo3ros',  
-     version='0.4',
-     description="Safe BNO055 IMU interface and utilities for ROS on GoPiGo3",
+     name='imu4gopigo3ros2',
+     version='0.5',
+     description="Safe Python3 BNO055 IMU interface and utilities for ROS2 on GoPiGo3",
      long_description=pkg_description,
      long_description_content_type="text/markdown",
 
