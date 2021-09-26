@@ -6,7 +6,7 @@
 """
   Publishes:
      /imu/data
-     /imu/mag   in units of microTesla  1 microTestla = 0.000001 Tesla
+     /imu/mag   in units of full Tesla  1 microTesla = 0.000001 Tesla
      /imu/temp
   TODO:
      /imu/status

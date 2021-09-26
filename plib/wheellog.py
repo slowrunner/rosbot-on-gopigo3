@@ -209,7 +209,17 @@ def main():
         if Dave: wheelLog.info(strToLog)
         exit(1)
     if Dave:
-        myconfig.setParameters(egpg)
+
+        print("\nGoPiGo3 Configuration:")
+        print("(Using default values or ~/Dexter/gpg3_config.json if present)")
+        print("WHEEL_DIAMETER: {:.3f} mm".format(egpg.WHEEL_DIAMETER))
+        print("WHEEL_BASE_WIDTH: {:.3f} mm".format(egpg.WHEEL_BASE_WIDTH))
+        print("ENCODER_TICKS_PER_ROTATION: {} (per one motor revolution)".format(egpg.ENCODER_TICKS_PER_ROTATION))
+        print("MOTOR_GEAR_RATIO: {} (motor revolutions per wheel revolution)".format(egpg.MOTOR_GEAR_RATIO))
+        print("MOTOR_TICKS_PER_DEGREE: {:.2f} (of wheel rotation)".format(egpg.MOTOR_TICKS_PER_DEGREE))
+        print("\n")
+
+        # myconfig.setParameters(egpg)
         # tp = tiltpan.TiltPan(egpg)
         # tp.tiltpan_center()
         # tp.off()
