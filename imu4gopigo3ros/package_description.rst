@@ -40,6 +40,7 @@ Features
   * Allow non NDOF modes
   * Allow SW Obj init without HW initialization
   * Defaults to no axis remap
+  * NOTE: Only supports Python3 
 
 Utilities:
   * startIMU - Put the IMU in NDOF or IMUPLUS (no mags) mode
@@ -63,8 +64,8 @@ Utilities:
 
 Installation:
 
+For Python3:
 $ sudo pip3 install imu4gopigo3ros
-
 
 
 Test:

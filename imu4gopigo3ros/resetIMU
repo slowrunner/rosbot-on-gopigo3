@@ -8,7 +8,7 @@
 #
 # File: resetIMU.py
 
-# ./resetIMU.py  or python3 reestIMU.py
+# Usage: resetIMU
 #
 #
 # Uses Alan's extended mutex protected SafeIMUSensor() class from ros_safe_inertial_measurement_unit.py

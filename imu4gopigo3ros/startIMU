@@ -27,6 +27,9 @@ optional arguments:
 # to start the BNO055, and set heading, roll, pitch to 0,0,0)
 #
 
+from __future__ import print_function
+from __future__ import division
+
 import argparse
 
 import time

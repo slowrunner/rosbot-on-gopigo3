@@ -10,7 +10,7 @@
 #
 # Usage:  Expand a console to be 192 chars wide (next line does not appear wrapped)
 # 3456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012
-# ./slowEzReads.py  or python3 slowEzReads.py
+# ReadIMU
 #
 # Uses Alan's extended mutex protected SafeIMUSensor() class from my_safe_inertial_measurement_unit.py
 # to print/overwrite a line of values 5 times a second or print once per second without overwrite

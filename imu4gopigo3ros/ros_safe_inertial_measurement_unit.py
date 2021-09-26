@@ -1,5 +1,4 @@
-#!/usr/bin/python3
-
+#
 # FILE:  ros_safe_inertial_measurement_unit.py
 
 # With kudos to https://www.dexterindustries.com
@@ -64,6 +63,10 @@ Expanded mutex protected Methods Implemented:
  - imu.safe_print_imu_readings()          prints tuple of all readings passed in
  - imu.readAndPrint()                     read and print with options for num times, delay, and EOL
 """
+
+from __future__ import print_function
+from __future__ import division
+
 
 # from di_sensors import inertial_measurement_unit
 import ros_inertial_measurement_unit as inertial_measurement_unit
