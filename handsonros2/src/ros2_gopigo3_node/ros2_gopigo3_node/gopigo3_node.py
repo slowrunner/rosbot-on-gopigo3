@@ -21,6 +21,7 @@
 #               /motor/dps/both, pwm/both, position/both added to minimize heading change
 #               additional initialization information output
 #               1 hz DEBUG mode with additional detail to stdout
+#               Turbo/HighSpeed Motor profile TURBO_BIAS added
 #    2020:  Hands On ROS transform to match book's gopigo3.urdf
 #    2018:  Initial gopigo3_node.py and renamed gopigo3_driver.py
 
@@ -58,7 +59,7 @@ import numpy as np
 # import os
 # import time
 
-NODE_VERSION = '0.5'
+NODE_VERSION = '0.6'
 
 DEBUG = False
 # Uncomment next line for Debugging
@@ -90,6 +91,8 @@ class GoPiGo3Node(Node):
     S2RPW = 575
     S1SECTOR = M_PI      # 180 degrees  (default is full travel)  10.278 usec/degree
     S2SECTOR = M_PI      # 180 degrees
+    TURBO_BIAS = 0.01    # m/s add to twist.angular.z when twist.linear.x is greater than threshold
+    BIAS_THRESH = 0.2    # m/s if cmd_vel:linear.x greater than threshold, apply turbo_bias
 
     def __init__(self):
         super().__init__('gopigo3_node')
@@ -128,6 +131,10 @@ class GoPiGo3Node(Node):
         self.declare_parameter('S2RPW', self.S2RPW, ParameterDescriptor(description='Int16 Right Limit Pulse Width For Servo 2'))
         self.declare_parameter('S2SECTOR', self.S2SECTOR, ParameterDescriptor(description='Float Total Sector Angle in Rads for Servo 2'))
 
+        # Below the bias threshold, the GoPiGo3 will drive straight.  Bias must be added above the threshold to achieve straight travel.
+        self.declare_parameter('TURBOBIAS', self.TURBO_BIAS, ParameterDescriptor(description='Float angular.z to add when linear.x cmd is over threshold'))
+        self.declare_parameter('BIASTHRESH', self.BIAS_THRESH, ParameterDescriptor(description='Float linear.x cmd threshold for adding angular bias'))
+
         self.S1LPW  = self.get_parameter('S1LPW').get_parameter_value().integer_value
         self.S1RPW  = self.get_parameter('S1RPW').get_parameter_value().integer_value
         self.S1_PULSE_RANGE = [self.S1RPW, self.S1LPW]
@@ -137,6 +144,10 @@ class GoPiGo3Node(Node):
         self.S2RPW  = self.get_parameter('S2RPW').get_parameter_value().integer_value
         self.S2_PULSE_RANGE = [self.S2RPW, self.S2LPW]
         self.S2SECTOR  = self.get_parameter('S2SECTOR').get_parameter_value().double_value
+
+        self.TURBO_BIAS  = self.get_parameter('TURBOBIAS').get_parameter_value().double_value
+        self.BIAS_THRESH  = self.get_parameter('BIASTHRESH').get_parameter_value().double_value
+
 
 
 
@@ -222,6 +233,9 @@ class GoPiGo3Node(Node):
         print("Servo1 Total Sector Width: {} radians".format(self.S1SECTOR))
         print("Servo2 PulseWidths L: {} R: {} us".format(self.S2LPW, self.S2RPW))
         print("Servo2 Total Sector Width: {:.2f} radians".format(self.S2SECTOR))
+        print("\n")
+        print("Turbo Bias Correction: {:.3f} m/s".format(self.TURBO_BIAS))
+        print("Bias Threshold Speed: {:.3f} m/s".format(self.BIAS_THRESH))
         print("==================================")
 
 
@@ -265,11 +279,18 @@ class GoPiGo3Node(Node):
             self.S2_PULSE_RANGE = [self.S2RPW, self.S2LPW]
             self.S2SECTOR  = self.get_parameter('S2SECTOR').get_parameter_value().double_value
 
+            self.TURBO_BIAS  = self.get_parameter('TURBOBIAS').get_parameter_value().double_value
+            self.BIAS_THRESH  = self.get_parameter('BIASTHRESH').get_parameter_value().double_value
+
+
+
             if DEBUG:
                 print('S1LPW: {} S1RPW: {}'.format(self.S1LPW, self.S1RPW))
                 print('S1SECTOR: {:.2f} rads'.format(self.S1SECTOR))
                 print('S2LPW: {} S2RPW: {}'.format(self.S2LPW, self.S2RPW))
                 print('S2SECTOR: {:.2f} rads'.format(self.S2SECTOR))
+                print('TURBOBIAS: {:.2f} m/s'.format(self.TURBO_BIAS))
+                print('BIASTHRESH: {:.2f} m/s'.format(self.BIAS_THRESH))
 
     def destroy_node(self):
         if DEBUG:
@@ -382,6 +403,11 @@ class GoPiGo3Node(Node):
         # source:
         #   https://opencurriculum.org/5481/circular-motion-linear-and-angular-speed/
         #   http://www.euclideanspace.com/physics/kinematics/combinedVelocity/index.htm
+
+        self.g.set_motor_limits(self.g.MOTOR_LEFT+self.g.MOTOR_RIGHT,0)  # allow for maximum speed possible
+
+        # correct for L/R motor power-velocity profile difference
+        if (twist.linear.x > self.BIAS_THRESH):  twist.angular.z += self.TURBO_BIAS
 
         right_speed = twist.linear.x + twist.angular.z * self.WIDTH / 2
         left_speed = twist.linear.x - twist.angular.z * self.WIDTH / 2
