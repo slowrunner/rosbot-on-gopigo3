@@ -49,7 +49,7 @@ def snapImage(fn=FN, wh=RES, dur_s=0, fps=TL_DEFAULT_FPS):
         dur_ms = int((dur_s-1) * 1000)    # take off to prevent extra photo
         print("Taking {} by {} time lapse images for {} s at {} fps".format(width,height,dur_s, fps))
         fn=fn+datetime.now().strftime("%Y%m%d-%H%M%S")+"_%04d.jpg"
-        cmd ='raspistill -n -vf -w {} -h {} -sh 75 -t {} -tl {} -o {}'.format(width,height,dur_ms,period_ms,fn)
+        cmd ='raspistill -n -rot 180 -w {} -h {} -sh 75 -t {} -tl {} -o {}'.format(width,height,dur_ms,period_ms,fn)
         print("cmd: {}".format(cmd))
         os.system(cmd)
         print("Wrote {}  ({} by {}) images as {}".format(int(dur_s*fps),width, height, fn))
@@ -57,7 +57,7 @@ def snapImage(fn=FN, wh=RES, dur_s=0, fps=TL_DEFAULT_FPS):
     else:
         print("Taking single image")
         fn=fn+datetime.now().strftime("%Y%m%d-%H%M%S")+".jpg"
-        cmd ='raspistill -n -vf -w {} -h {} -sh 75 -o {}'.format(width,height,fn)
+        cmd ='raspistill -n -rot 180 -w {} -h {} -sh 75 -o {}'.format(width,height,fn)
         print("cmd: {}".format(cmd))
         os.system(cmd)
         print("Wrote single {} by {} image to {}".format(width, height, fn))
