@@ -20,8 +20,10 @@ echo "***** STARTING GAMEPAD NODES (joy_node, teleop_twist_joy)"
 ros2 launch teleop_twist_joy teleop-launch.py joy_config:="snes" &
 
 # Don't know how to kill it by name, so don't run in background - use cntl-c
-# ros2 launch ydlidar_ros2_driver ydlidar_launch.py 
+# ros2 launch ydlidar_ros2_driver ydlidar_launch.py
 
 echo "***** STARTING ROSBAG -> rosbag2_1k"
 #ros2 bag record -o rosbag2_1k /cmd_vel /odom /imu/data /battery_voltage &
 ros2 bag record /cmd_vel /odom /imu/data /battery_voltage /tf /motor/status &
+
+/home/pi/rosbot-on-gopigo3/plib/snapJPG.py -tl 600 &
