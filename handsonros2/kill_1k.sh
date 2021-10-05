@@ -27,4 +27,8 @@ echo "Killing snapJPG and raspistill"
 kill $(ps aux | grep '[p]ython3 snapJPG.py' | awk '{print $2}')
 killall raspistill
 
+echo "Killing captureH264 and raspivid"
+kill $(ps aux | grep '[p]ython3 captureH264.py' | awk '{print $2}')
+killall raspivid
+
 echo "kill_1k.sh Completed"

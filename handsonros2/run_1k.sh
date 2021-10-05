@@ -26,4 +26,6 @@ echo "***** STARTING ROSBAG -> rosbag2_1k"
 #ros2 bag record -o rosbag2_1k /cmd_vel /odom /imu/data /battery_voltage &
 ros2 bag record /cmd_vel /odom /imu/data /battery_voltage /tf /motor/status &
 
-/home/pi/rosbot-on-gopigo3/plib/snapJPG.py -tl 600 &
+# /home/pi/rosbot-on-gopigo3/plib/snapJPG.py -tl 600 &
+/home/pi/rosbot-on-gopigo3/plib/captureH264.py -t 600 -fps 4 &
+
