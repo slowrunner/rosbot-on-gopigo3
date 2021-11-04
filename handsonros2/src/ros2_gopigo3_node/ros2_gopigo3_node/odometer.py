@@ -22,6 +22,9 @@ import math
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point  # (position: float64 x,y,z)
+import logging
+import datetime as dt
+
 
 class OdometerNode(Node):
 
@@ -31,6 +34,7 @@ class OdometerNode(Node):
   moved_x = 0.0
   total_x = 0.0
   startup = True
+  ODOLOGFILE = '/home/pi/rosbot-on-gopigo3/odom.log'
 
   # start_time =
 
@@ -44,6 +48,14 @@ class OdometerNode(Node):
       10)
     self.sub  # prevent unused var warning
     self.get_logger().info('odometry topic subscriber created')
+
+    self.odoLog = logging.getLogger('odoLog')
+    self.odoLog.setLevel(logging.INFO)
+
+    self.loghandler = logging.FileHandler(self.ODOLOGFILE)
+    self.logformatter = logging.Formatter('%(asctime)s|%(message)s',"%Y-%m-%d %H:%M:%S")
+    self.loghandler.setFormatter(self.logformatter)
+    self.odoLog.addHandler(self.loghandler)
     # self.get_logger().info('doubled topic publisher created')
 
 
@@ -59,9 +71,16 @@ class OdometerNode(Node):
     if math.isclose(self.current_point.x, self.last_point.x, abs_tol=0.00001):
         if (self.moving == True):   # end of motion
             self.total_x += abs(self.moved_x)
-            print("current_point - x: {:.3f} y: {:.3f} z: {:.3f} - moved: {:.3f} total moved: {:.3f}".format(
-                       self.current_point.x, self.current_point.y, self.current_point.z, self.moved_x, self.total_x))
+            printMsg = "current_point - x: {:.3f} y: {:.3f} z: {:.3f} - moved: {:.3f} total moved: {:.3f}".format(
+                       self.current_point.x, self.current_point.y, self.current_point.z, self.moved_x, self.total_x)
+            print(printMsg)
             print("stopped moving")
+
+            # Log this travel segment to odom.log
+            logMsg = "travel: {:>4.3f}".format(self.moved_x)
+            self.odoLog.info(logMsg)
+
+
             self.moving = False
         else:   # was not moving and still not moved
             pass
