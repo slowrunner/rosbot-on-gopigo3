@@ -35,6 +35,7 @@ setup(
             'ultrasonic_ranger = ros2_gopigo3_node.ultrasonic_ranger:main',
             'distance_sensor = ros2_gopigo3_node.distance_sensor:main',
             'distance_sensor_subscriber = ros2_gopigo3_node.distance_sensor_subscriber:main',
+            'odometer = ros2_gopigo3_node.odometer:main',
             'gopigo3_node = ros2_gopigo3_node.gopigo3_node:main',
         ],
     },
