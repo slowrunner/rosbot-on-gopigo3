@@ -20,16 +20,20 @@
 import rclpy
 import math
 from rclpy.node import Node
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import Odometry    # (header, child_frame_id, pose, twist)
 from geometry_msgs.msg import Point  # (position: float64 x,y,z)
 import logging
 import datetime as dt
-
+from rclpy.time import Time
 
 class OdometerNode(Node):
 
   last_point = Point()
   current_point = Point()
+  start_timestamp = Time()    # (int32 sec, uint32 nanosec)
+  current_timestamp = Time()    # header.stamp (int32 sec, uint32 nanosec)
+  last_timestamp = Time()
+
   moving = False
   moved_x = 0.0
   total_x = 0.0
@@ -62,24 +66,27 @@ class OdometerNode(Node):
   def sub_callback(self,odometry_msg):
     # segment_msg = ()
     self.current_point = odometry_msg.pose.pose.position
+    self.current_timestamp = odometry_msg.header.stamp
     # self.get_loger().info(odom_msg.pose.pose)
 
     if self.startup:
         self.last_point.x = self.current_point.x
+        self.last_timestamp = self.current_timestamp
         self.startup = False
 
     if math.isclose(self.current_point.x, self.last_point.x, abs_tol=0.00001):
         if (self.moving == True):   # end of motion
             self.total_x += abs(self.moved_x)
-            printMsg = "current_point - x: {:.3f} y: {:.3f} z: {:.3f} - moved: {:.3f} total moved: {:.3f}".format(
-                       self.current_point.x, self.current_point.y, self.current_point.z, self.moved_x, self.total_x)
+            moving_seconds = self.current_timestamp.sec + (self.current_timestamp.nanosec/1000000000.0) - self.start_timestamp.sec - (self.start_timestamp.nanosec/1000000000.0)
+
+            printMsg = "current_point - x: {:.3f} y: {:.3f} z: {:.3f} - moved: {:.3f} total moved: {:.3f} in {:.1f}s".format(
+                       self.current_point.x, self.current_point.y, self.current_point.z, self.moved_x, self.total_x, moving_seconds)
             print(printMsg)
             print("stopped moving")
 
             # Log this travel segment to odom.log
-            logMsg = "travel: {:>4.3f}".format(self.moved_x)
+            logMsg = "travel: {:>7.3f}  motion: {:>7.1f} sec".format(self.moved_x, moving_seconds)
             self.odoLog.info(logMsg)
-
 
             self.moving = False
         else:   # was not moving and still not moved
@@ -90,12 +97,14 @@ class OdometerNode(Node):
             self.moving = True
             self.moved_x = self.current_point.x - self.last_point.x
             print("current_point - x: {:.3f} y: {:.3f} z: {:.3f} - moved: {:.3f}".format(self.current_point.x, self.current_point.y, self.current_point.z, self.moved_x))
+            self.start_timestamp = self.last_timestamp
 
         else:     # still moving
             self.moved_x += self.current_point.x - self.last_point.x
             print("current_point - x: {:.3f} y: {:.3f} z: {:.3f} - moved: {:.3f}".format(self.current_point.x, self.current_point.y, self.current_point.z, self.moved_x))
 
     self.last_point = self.current_point
+    self.last_timestamp = self.current_timestamp
     if self.moving == False:
         self.moved_x = 0.0
     # self.pub.publish(doubled_msg)
