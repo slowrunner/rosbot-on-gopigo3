@@ -39,8 +39,25 @@ wifis:
 - exit and close terminal
 
 NOTE:  this info is "eaten" by cloud-init and put in /etc/netplan/50-cloud-init.yaml
-==== DISABLE IPv6
-nano user
+
+
+
+
+=== DISABLE IPV6
+
+Browse the disk (boot)
+Rt Click on System Volume Information->Open Terminal Here
+cd ..
+
+cp /boot/cmdline.txt /boot/cmdline.txt.bak
+nano cmdline.txt
+add to end of line/file:
+ipv6.disable=1
+save, exit editor
+
+- eject disk
+
+
 
 ==== Ubuntu Server First Boot 
 -insert micro SD card
