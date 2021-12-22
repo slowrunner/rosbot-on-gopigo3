@@ -1,0 +1,200 @@
+Setup ROSbot-on-gopigo3
+
+=== Setup SDcard
+* Use Setup_Ubuntu20.04_64-bit.txt
+- install Ubuntu 20.04 Server 64-bit
+- install Dexter/GoPiGo3 from GitHub
+- install Dexter/DI_Sensors from GitHub
+- install Dexter miscellaneous from GitHub
+
+=== Install RPI-CLONE
+* Use PiStuff/Backup_Restore_Pi.txt
+
+=== [FAILED]  CLONE ROSbot SDcard
+insert sdCard into USB Adapter
+insert USB Adapter to RPi
+lsblk to find disk (look for sda/sda1)
+sda           8:0    1 29.7G  0 disk 
+└─sda1        8:1    1 29.7G  0 part 
+
+sudo rpi-clone sda
+(press enter when asked any question)
+
+After unmounting by rpi-clone :
+
+$ lsblk
+
+NAME        MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+loop0         7:0    0 48.9M  1 loop /snap/core18/1949
+loop1         7:1    0 61.6M  1 loop /snap/lxd/19040
+loop2         7:2    0 48.9M  1 loop /snap/core18/2068
+loop3         7:3    0   27M  1 loop /snap/snapd/10709
+loop4         7:4    0 59.6M  1 loop /snap/lxd/20330
+loop5         7:5    0 27.9M  1 loop /snap/snapd/11843
+sda           8:0    1 29.7G  0 disk 
+├─sda1        8:1    1  256M  0 part 
+└─sda2        8:2    1 29.5G  0 part 
+mmcblk0     179:0    0 29.7G  0 disk 
+├─mmcblk0p1 179:1    0  256M  0 part /boot/firmware
+└─mmcblk0p2 179:2    0 29.5G  0 part /
+
+WHEN DONE!!! Before pull out the sdcard or adapter
+
+
+sudo udisksctl power-off -b /dev/sda
+
+
+=== BACKUP UbuntuGoPiGo OS to MacMini
+
+pi: sudo shutdown -h now
+mac: 
+ terminal
+ insert SD card 
+ Open Terminal window
+
+ cd /Volumes/Samsung_T5/PiStuff/OS_Images_and_more/BackupImages
+ >diskutil list
+
+find the SD card identifier:
+/dev/disk6 (external, physical):
+   #:                       TYPE NAME                    SIZE       IDENTIFIER
+   0:     FDisk_partition_scheme                        *31.9 GB    disk6
+   1:             Windows_FAT_32 ⁨system-boot⁩             268.4 MB   disk6s1
+   2:                      Linux ⁨⁩                        31.6 GB    disk6s2
+
+  
+ 
+  sudo dd bs=1m if=/dev/rdisk6 of=Bkup2021-06-10_ubuntu20-04_server.dmg
+
+  (takes about 6 min - 32GB on 2018 Mac Mini)
+   31914983424 bytes transferred in 344.875707 secs (92540538 bytes/sec)
+ 
+  (if get Resource busy:  make real sure which dev, sudo diskutil unmountDisk /dev/disk5 )
+  (to check on the copy process Ctrl-t )  
+
+rt-click on "boot" icon->eject
+  or 
+  sudo diskutil eject /dev/rdisk6
+
+==== RESTORE UbuntuGoPiGo OS FROM MacMini BACKUP
+  Mac: 
+  Formatting new SD card (with Disk Util):
+  Open terminal window
+  cd /Volumes/BP4TB_Data/PiStuff/OS_Images_and_more/BackupImages
+ 
+  diskutil list   (to make sure know what /dev/diskX is card)
+
+/dev/disk6 (external, physical):
+   #:                       TYPE NAME                    SIZE       IDENTIFIER
+   0:     FDisk_partition_scheme                        *31.9 GB    disk6
+   1:             Windows_FAT_32 ⁨NO NAME⁩                 268.4 MB   disk6s1
+   2:                      Linux ⁨⁩                        31.6 GB    disk6s2
+
+
+  diskutil unmountDisk /dev/disk6   <<-- don't unmount with Finder widget
+
+  transfer the image:
+  
+  sudo dd bs=1m if=Bkup2021-06-10_ubuntu20-04_server.dmg of=/dev/rdisk6
+
+   (to check progress - ctrl-t )
+  
+  31914983424 bytes transferred in 1369.888766 secs (23297500 bytes/sec)
+  23 minutes
+
+=== Change hostname to ROSbot
+sudo hostnamectl set-hostname ROSbot
+hostname
+sudo reboot
+
+
+===[Once] Create GitHub Repository and configure for personal token
+Created new repository rosbot-on-gopigo3
+
+=== BRING DOWN Github content
+git clone https://github.com/slowrunner/rosbot-on-gopigo3.git /home/pi/rosbot-on-gopigo3
+
+
+update README.md
+
+git config --global user.name "slowrunner"
+git config --global user.email "slowrunner@users.noreply.github.com"
+git config --global credential.helper store
+
+git add 
+git commit
+git push
+username: 
+password:  <use token>
+(will save it for future)
+
+=== Setup life log
+setup root crontab with content of rosbot-on-gopigo3/configs/crontab-e
+
+=== SETUP ROS2 ON Ubuntu 20.04 64-bit Server ======
+Mostly follows https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html
+
+=== SETUP GPG KEY
+sudo apt install curl gnupg2 lsb-release
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key  -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+=== ADD ROS REPOSITORY TO SOURCES
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+=== UPDATE CACHES
+sudo apt update
+
+
+=== INSTALL ROS FOXY BASE
+sudo apt install ros-foxy-ros-base
+
+=== SOURCE SETUP SCRIPT
+source /opt/ros/foxy/setup.bash
+
+
+=== INSTALL ARGCOMPLETE
+sudo apt install -y python3-argcomplete
+
+=== INSTALL DEMO NODES (not installed by ros-foxy-ros-base )
+
+sudo apt install ros-foxy-demo-nodes-py
+sudo apt install ros-foxy-demo-nodes-cpp
+
+=== TEST
+
+* In first ssh session:
+source /opt/ros/foxy/setup.bash
+ros2 run demo_nodes_cpp talker
+
+* Open a second ssh session
+
+source /opt/ros/foxy/setup.bash
+ros2 run demo_nodes_py listener
+
+
+==== SETUP colcon
+
+sudo apt install python3-colcon-common-extensions
+
+=== SETUP ROS2 in ~/.bashrc 
+- add the following at the end of ~/.bashrc
+
+source /opt/ros/foxy/setup.bash
+source /usr/share/colcon_cd/function/colcon_cd.sh
+export _colcon_cd_root=~/rosbot-on-gopigo3/handsonros2
+export ROS_DOMAIN_ID=0
+
+=== SETUP ROSDEP
+sudo apt install python3-rosdep2
+rosdep update
+
+
+
+
+
+
+
+
+
+
+

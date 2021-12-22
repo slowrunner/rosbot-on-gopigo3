@@ -1,0 +1,865 @@
+Ubuntu 20.04 Server LTS 64-bit for Pi3/Pi3B+
+
+6/15/2021 UPDATE: Added picamera setup
+6/13/2021 UPDATE: Added password-less sudo setup
+6/5/2021 UPDATE:  Added swap file creation and disable unattended updates (after the first one)
+6/4/2021 UPDATE:  Tested on Ubuntu 20.04 Server LTS 64-bit on RPi3B - full sensor, servo, and motor functions working
+
+This procedure is fully headless by configuring WiFi before the first boot, and uses ssh access to complete everything.  There is no desktop.  It uses a bit over 3GB of storage, and has 700MB of free memory when running.
+
+=== DOWNLOAD UBUNTU 20.04 Server LTS 64-bit image
+https://ubuntu.com/download/raspberry-pi
+
+
+*** Flash SD card with Raspberry Pi Imager
+  Select the Ubuntu->Ubuntu Server 20.04 LTS 64-bit
+  or Custom->ubuntu-20.04.2-preinstalled-server-arm64_raspi.img.xz
+  (Scroll) Select the 16GB SD Card
+  Write
+
+=== Mount the card to allow headless configuration
+- Pull card out, reinsert for next steps
+
+
+=== Setup WiFi Headless  !!! PERSONAL INFORMATION !!!
+- Browse system-boot partition
+- Show in enclosing folder 
+- Open Terminal at folder
+- nano network-config, uncomment and edit:
+wifis:
+  wlan0:
+    dhcp4: true
+    optional: true           <-- may want to set to false to make boot wait for complete network
+    access-points:
+      "your_SSID":
+        password: "your_netpswd"
+      "another_SSID":
+        password: "another_netpswd"
+
+- exit and close terminal
+
+NOTE:  this info is "eaten" by cloud-init and put in /etc/netplan/50-cloud-init.yaml
+==== DISABLE IPv6
+nano user
+
+==== Ubuntu Server First Boot 
+-insert micro SD card
+-power on
+- on mac:  arp -a to check IP  (may not show up or may show "incomplete" for some reason)
+
+=== First Login  (may take a few minutes before alive..)
+ssh ubuntu@x.x.x.x
+    username: ubuntu  password: ubuntu
+
+    If see SSH HOST KEY verification failed
+     on mac:  ssh-keygen -R x.x.x.x 
+
+- FIRST LOGIN - CHANGE PASSWORD 
+    Current password: ubuntu
+    New password: enter !!! your_new_password !!!, then ssh in again
+
+=== UPDATING 
+
+- Check for unattended upgrade
+$ pgrep -a unattended
+
+If running, then:
+$ tail -f /var/log/unattended-upgrades/unattened-upgrades.log
+  (can tail -dpkgs.log but it does not log when it is done)
+
+Continue hen see: INFO All upgrades installed" in unattended-upgrades.log
+
+==== DISABLE FUTURE UNATTENDED UPDATES ===
+
+$ sudo nano /etc/apt/apt.conf.d/20auto-upgrades
+Change the "1" to "0" in both lines:
+APT::Periodic::Update-Package-Lists "0";
+APT::Periodic::Unattended-Upgrade "0";
+
+$ sudo apt remove unattended-upgrades
+
+$ sudo reboot
+
+After reboot, probably some packages still to upgrade:
+
+$ sudo apt update
+$ sudo apt upgrade
+$ sudo reboot
+
+
+==== CREATE SWAPFILE
+$ sudo fallocate -l 2G /swapfile
+$ sudo chmod 600 /swapfile
+$ sudo mkswap /swapfile
+$ sudo swapon /swapfile
+$ sudo nano /etc/fstab
+add line to end of file:
+/swapfile swap swap defaults 0 0
+
+Verify:
+$ free -h
+
+=== [skip] === INSTALL LIGHTWEIGHT DESKTOP (supposedly take 790MB ram )
+$ sudo apt install xubuntu-desktop
+or
+$ sudo apt install lubuntu-desktop
+
+
+
+=== [skiped]=== DISABLE IPV6
+
+Browse the disk (boot)
+Rt Click on System Volume Information->Open Terminal Here
+cd ..
+
+cp /boot/cmdline.txt /boot/cmdline.txt.bak
+nano cmdline.txt
+add to end of line/file:
+ipv6.disable=1
+save, exit editor
+
+- eject disk
+
+
+
+=== Configure for timezone
+cat /etc/timezone
+or
+$ timedatectl
+$ sudo timedatectl set-timezone America/New_York
+
+=== Check locale
+$ locale 
+
+
+=== CHECK DISKSPACE
+$ df -h
+Check size of / partition and % used:  (16GB card)
+
+/dev/mmcblk0p2   29G  2.9G   25G  11% /
+
+
+
+=== INSTALL RASPBERRY PI LIBRARY ===
+sudo apt install libraspberrypi-bin
+
+==== Check  TEMPERATURE 
+
+
+To view the Pi's temperature  (use sudo for now, add user to video group later)
+   $ sudo vcgencmd measure_temp 
+
+temp=45.1'C
+
+It's generally a good idea to keep the core temperature below 70 degrees
+
+
+
+=== info about processor, memory, disk partitions ===
+cat /proc/cpuinfo
+cat /proc/meminfo
+cat /proc/partitions
+cat /proc/version
+Linux version 5.4.0-1035-raspi (buildd@bos02-arm64-009) (gcc version 9.3.0 (Ubuntu 9.3.0-17ubuntu1~20.04)) #38-Ubuntu SMP PREEMPT Tue Apr 20 21:37:03 UTC 202
+
+
+
+=== CHECK MEMORY USAGE ====
+ubuntu@ubuntu:~$ free -h
+              total        used        free      shared  buff/cache   available
+Mem:          908Mi       194Mi       113Mi       3.0Mi       600Mi       688Mi
+Swap:            0B          0B          0B
+
+
+=== HTOP
+
+htop
+
+check 15min load average:  0.01  (also with uptime)
+
+q to exit
+
+
+==== CHANGE HOSTNAME ===
+$ sudo hostnamectl set-hostname ROSPI
+$ hostname
+
+
+
+===== rebooting ====
+sudo shutdown -r now  (or sudo reboot)
+
+
+
+
+===== Get pip3
+
+$sudo apt-get install python3-pip
+
+===== test internet speed ====
+$ sudo pip3 install speedtest-cli
+$ speedtest-cli
+
+
+
+Speedtest Result 
+
+  2021Jun04:  55.66 Mbps Down, 11.96 Up, Ping: 32ms
+  2019Sep03:  39.55 Mbps Download, 11.52 Up 34ms ping
+
+
+
+===== describe hardware =====
+
+
+sudo lshw
+
+
+
+
+======  Testing Disk speed =====
+sudo hdparm -t /dev/mmcblk0  
+(ignore error
+
+reports 
+  Pi3B+:  68 MB in 3.01s = 22.61 MB/sec
+  Pi3: 62 MB in 3.06s = 20.27 MB/sec
+  pi B+: 54 MB in 3s = 17.7 MB/s
+
+======= check OS version ======
+cat /etc/os-release
+
+ 
+ubuntu@ubuntu:~$ cat /etc/os-release
+NAME="Ubuntu"
+VERSION="20.04.2 LTS (Focal Fossa)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 20.04.2 LTS"
+VERSION_ID="20.04"
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+VERSION_CODENAME=focal
+UBUNTU_CODENAME=focal
+
+==== check Pi firmware version
+
+
+$ sudo vcgencmd version
+
+Feb 25 2021 12:12:09 
+Copyright (c) 2012 Broadcom
+version 564e5f9b852b23a330b1764bcf0b2d022a20afd0 (clean) (release) (start)
+
+
+
+==== get psutil for boot_time() in sayStatus.py
+pip3 install psutil
+
+
+
+=== TURN OFF WIFI POWER MANAGEMENT PERMANENTLY
+
+To see if power management is on:
+
+```
+$ iwconfig wlan0
+...
+wlan0     IEEE 802.11  ESSID:"MYSSID"  
+          Mode:Managed  Frequency:2.452 GHz  Access Point: xx:xx:xx:xx:xx:xx   
+          Bit Rate=65 Mb/s   Tx-Power=31 dBm   
+          Retry short limit:7   RTS thr:off   Fragment thr:off
+          Power Management:on                  <-- POWER MANAGEMENT is ON
+
+```
+
+
+=== INSTALL WIRELESS-TOOLS for iwconfig
+
+sudo apt-get install wireless-tools
+
+===  TURN POWER MANAGEMENT OFF  to limit Tx excessive retries and ping request timeouts
+
+set temporarily with:  
+sudo iwconfig wlan0 power off  
+
+set permanently with:  
+[u]See (https://raspberrypi.stackexchange.com/questions/96606/make-iw-wlan0-set-power-save-off-permanent[/u]  
+```
+$ sudo systemctl --full --force edit wifi_powersave@.service
+```
+```
+[Unit]
+Description=Set WiFi power save %i
+After=sys-subsystem-net-devices-wlan0.device
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/sbin/iw dev wlan0 set power_save %i
+
+[Install]
+WantedBy=sys-subsystem-net-devices-wlan0.device
+```
+
+Then 
+``` 
+$ sudo systemctl enable wifi_powersave@off.service
+```
+and reboot.
+
+(Check it with "iwconfig wlan0" again)
+
+If ever want it back on:
+```
+$ sudo systemctl disable wifi_powersave@off.service  
+$ sudo systemctl enable wifi_powersave@on.service
+```
+
+
+
+**Another way is to add to /etc/rc.local before exit 0:**
+/sbin/iwconfig wlan0 power off
+
+
+
+
+==== BEGIN GOPIGO3 SPECIFIC STEPS
+
+===== Create a Pi user with a /home/pi default directory, /bin/bash login shell ===
+
+$ sudo useradd -m pi
+$ sudo passwd pi
+
+$ sudo usermod -a -G ubuntu,adm,dialout,cdrom,floppy,sudo,audio,dip,video,plugdev,netdev,lxd pi
+$ sudo groupadd gpio
+$ sudo groupadd i2c
+$ sudo groupadd spi
+$ sudo usermod -a -G gpio,i2c,spi pi
+$ sudo usermod -a -G gpio,i2c,spi ubuntu
+$ sudo usermod -a -G pi ubuntu
+
+Check with:
+$ groups pi
+$ groups ubuntu
+
+=== CONFIGURE PASSWORD-LESS SUDO
+
+sudo nano /etc/sudoers
+
+make sudo group look like:
+# Allow members of group sudo to execute any command
+%sudo	ALL=(ALL:ALL) NOPASSWD: ALL
+
+
+=== CONFIGURE PI DEFAULT SHELL TO BASH
+
+$ sudo chsh -s /bin/bash pi
+
+=== ALLOW non-root SPI and GPIO  (Temporarily - will make permanent later)
+
+
+$ sudo chgrp spi /dev/spidev0.0
+$ sudo chgrp spi /dev/spidev0.1
+
+$ sudo chmod 660 /dev/spidev0.0
+$ sudo chmod 660 /dev/spidev0.1
+
+$ sudo chgrp gpio /sys/class/gpio/export
+$ sudo chgrp gpio /sys/class/gpio/unexport
+
+$ sudo chmod 770 /sys/class/gpio/export
+$ sudo chmod 770 /sys/class/gpio/unexport
+
+
+=== [SKIP] === Enable spi, i2c without raspi-config
+
+6/3/21: system-boot/sysconfig.txt now has these configured
+
+enable_uart=1
+dtparam=audio=on
+dtparam=i2c_arm=on
+dtparam=spi=on
+
+
+
+
+
+
+
+
+==== GOPIGO3 LIBRARIES 
+$ logout
+$ ssh pi@x.x.x.x
+$ sudo git clone -b install_on_ubuntu http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiGo3
+
+$ sudo curl -kL dexterindustries.com/update_tools | bash -s -- --system-wide --use-python3-exe-too --install-deb-debs --install-python-package
+[sudo] password for pi:  (enter login pswd for pi)
+
+$ sudo apt-get install --no-install-recommends python3-pip python3-numpy python3-curtsies
+
+
+
+=== DI_SENSORS LIBRARY
+
+$ sudo git clone https://github.com/DexterInd/DI_Sensors.git /home/pi/Dexter/DI_Sensors
+
+
+==== [Already installed] RPi.GPIO
+
+sudo apt install python3-rpi.gpio  
+
+==== PIGPIO ===
+$ sudo apt-get install unzip
+$ wget https://github.com/joan2937/pigpio/archive/master.zip
+$ unzip master.zip
+$ cd pigpio-master
+$ make
+$ sudo make install
+$ cd ..
+$ rm master.zip
+
+
+
+
+
+=== pigpiod
+
+wget https://raw.githubusercontent.com/joan2937/pigpio/master/util/pigpiod.service
+
+(Replacing with the non-forking version - don't know why)
+
+$ sudo nano pigpiod.service
+
+[Unit]
+Description=Pigpio daemon
+After=network.target syslog.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+StartLimitAction=reboot
+
+[Service]
+Type=simple
+ExecStartPre=/sbin/sysctl -w net.ipv4.tcp_keepalive_time=300
+ExecStartPre=/sbin/sysctl -w net.ipv4.tcp_keepalive_intvl=60
+ExecStartPre=/sbin/sysctl -w net.ipv4.tcp_keepalive_probes=5
+# Don't fork pigpiod
+ExecStart=/usr/local/bin/pigpiod -g
+ExecStop=
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+
+
+$ sudo cp pigpiod.service /etc/systemd/system
+
+$ sudo systemctl enable pigpiod.service
+$ sudo systemctl start pigpiod.service
+$ systemctl status pigpiod.service
+● pigpiod.service - Pigpio daemon
+     Loaded: loaded (/etc/systemd/system/pigpiod.service; enabled; vendor preset: enabled)
+     Active: active (running) since Fri 2021-06-04 20:08:56 EDT; 9s ago
+    Process: 8685 ExecStartPre=/sbin/sysctl -w net.ipv4.tcp_keepalive_time=300 (code=exited, status=0/SUCCESS)
+    Process: 8686 ExecStartPre=/sbin/sysctl -w net.ipv4.tcp_keepalive_intvl=60 (code=exited, status=0/SUCCESS)
+    Process: 8687 ExecStartPre=/sbin/sysctl -w net.ipv4.tcp_keepalive_probes=5 (code=exited, status=0/SUCCESS)
+   Main PID: 8688 (pigpiod)
+      Tasks: 4 (limit: 973)
+     CGroup: /system.slice/pigpiod.service
+             └─8688 /usr/local/bin/pigpiod -g
+
+Jun 04 20:08:56 ROSPI systemd[1]: Starting Pigpio daemon...
+Jun 04 20:08:56 ROSPI sysctl[8685]: net.ipv4.tcp_keepalive_time = 300
+Jun 04 20:08:56 ROSPI sysctl[8686]: net.ipv4.tcp_keepalive_intvl = 60
+Jun 04 20:08:56 ROSPI sysctl[8687]: net.ipv4.tcp_keepalive_probes = 5
+Jun 04 20:08:56 ROSPI systemd[1]: Started Pigpio daemon.
+
+
+
+
+
+=== R4R_Tools (for I2C_mutex)
+$ sudo git clone https://github.com/DexterInd/RFR_Tools.git /home/pi/Dexter/lib/Dexter/RFR_Tools
+$ sudo apt-get install libffi-dev
+$ cd /home/pi/Dexter/lib/Dexter//RFR_Tools/miscellaneous/
+$ sudo python3 setup.py install
+
+
+Check that the mutex stuff will be available:
+
+$ unzip -l /usr/local/lib/python3.8/dist-packages/Dexter_AutoDetection_and_I2C_Mutex-0.0.0-py3.8.egg
+Archive:  /usr/local/lib/python3.8/dist-packages/Dexter_AutoDetection_and_I2C_Mutex-0.0.0-py3.8.egg
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+     3154  2021-05-31 15:48   I2C_mutex.py
+     9445  2021-05-31 15:48   auto_detect_robot.py
+     6211  2021-05-31 15:48   auto_detect_rpi.py
+    23756  2021-05-31 15:48   di_i2c.py
+     1700  2021-05-31 15:48   di_mutex.py
+      303  2021-05-31 15:51   EGG-INFO/PKG-INFO
+      372  2021-05-31 15:51   EGG-INFO/SOURCES.txt
+        1  2021-05-31 15:51   EGG-INFO/dependency_links.txt
+       46  2021-05-31 15:51   EGG-INFO/requires.txt
+       60  2021-05-31 15:51   EGG-INFO/top_level.txt
+        1  2021-05-31 15:51   EGG-INFO/zip-safe
+     2812  2021-05-31 15:51   __pycache__/I2C_mutex.cpython-38.pyc
+     6565  2021-05-31 15:51   __pycache__/auto_detect_robot.cpython-38.pyc
+     4592  2021-05-31 15:51   __pycache__/auto_detect_rpi.cpython-38.pyc
+    14282  2021-05-31 15:51   __pycache__/di_i2c.cpython-38.pyc
+     1652  2021-05-31 15:51   __pycache__/di_mutex.cpython-38.pyc
+---------                     -------
+    74952                     16 files
+
+
+==== wiringPi ====
+
+cd /home/pi/Dexter/lib
+git clone https://github.com/DexterInd/wiringPi/
+cd wiringPi
+sudo chmod +x ./build
+sudo ./build
+
+
+==== [SKIP] antenna wifi service
+sudo mkdir -p /etc/systemd/system/antenna_wifi.service.d/
+
+sudo cp /home/pi/di_update/Raspbian_For_Robots/upd_script/antenna_wifi_override.conf /etc/systemd/system/antenna_wifi.service.d/
+sudo nano /etc/systemd/system/antenna_wifi.service.d 
+  change Restart=always to =no
+sudo systemctl daemon-reload
+sudo systemctl restart antenna_wifi.service
+
+systemctl status antenna_wifi    shows it ran once, exited and not restarted
+
+- to disable it:
+sudo systemctl disable antenna_wifi
+
+==== GPG3_POWER SERVICE ===
+  cd ~
+  sudo cp /home/pi/Dexter/GoPiGo3/Install/gpg3_power.service /etc/systemd/system
+  sudo chmod 644 /etc/systemd/system/gpg3_power.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable gpg3_power.service
+  sudo systemctl start gpg3_power.service
+
+====  [SKIP]  AUTODETECT ROBOT ===
+X mkdir /home/pi/Dexter/R4R
+X cd /home/pi/Dexter/R4R
+X wget https://raw.githubusercontent.com/DexterInd/Raspbian_For_Robots/master/buster_update/auto_detect_robot.service
+X sudo cp /home/pi/Dexter/R4R/auto_detect_robot.service /etc/systemd/system/
+X sudo systemctl daemon-reload
+X sudo systemctl enable auto_detect_robot.service
+X sudo systemctl start auto_detect_robot.service
+
+==== SETUP GoPiGo3 and DI_Sensors Python3 eggs 
+$ cd /home/pi/Dexter/GoPiGo3/Software/Python
+$ sudo python3 setup.py install
+$ cd /home/pi/Dexter/DI_Sensors/Python
+$ sudo python3 setup.py install
+
+
+
+
+==== Setup non-root access rules ====
+
+
+$ sudo nano /etc/udev/rules.d/99-com.rules
+
+
+SUBSYSTEM=="input", GROUP="input", MODE="0660"
+SUBSYSTEM=="i2c-dev", GROUP="i2c", MODE="0660"
+SUBSYSTEM=="spidev", GROUP="spi", MODE="0660"
+SUBSYSTEM=="bcm2835-gpiomem", GROUP="gpio", MODE="0660"
+SUBSYSTEM=="rpivid-*", GROUP="video", MODE="0660"
+
+KERNEL=="vcsm-cma", GROUP="video", MODE="0660"
+SUBSYSTEM=="dma_heap", GROUP="video", MODE="0660"
+
+SUBSYSTEM=="gpio", GROUP="gpio", MODE="0660"
+SUBSYSTEM=="gpio*", PROGRAM="/bin/sh -c '\
+	chown -R root:gpio /sys/class/gpio && chmod -R 770 /sys/class/gpio;\
+	chown -R root:gpio /sys/devices/virtual/gpio && chmod -R 770 /sys/devices/virtual/gpio;\
+	chown -R root:gpio /sys$devpath && chmod -R 770 /sys$devpath\
+'"
+
+SUBSYSTEM=="pwm*", PROGRAM="/bin/sh -c '\
+	chown -R root:gpio /sys/class/pwm && chmod -R 770 /sys/class/pwm;\
+	chown -R root:gpio /sys/devices/platform/soc/*.pwm/pwm/pwmchip* && chmod -R 770 /sys/devices/platform/soc/*.pwm/pwm/pwmchip*\
+'"
+
+KERNEL=="ttyAMA0", PROGRAM="/bin/sh -c '\
+	ALIASES=/proc/device-tree/aliases; \
+	if cmp -s $$ALIASES/uart0 $$ALIASES/serial0; then \
+		echo 0;\
+	elif cmp -s $$ALIASES/uart0 $$ALIASES/serial1; then \
+		echo 1; \
+	else \
+		exit 1; \
+	fi\
+'", SYMLINK+="serial%c"
+
+KERNEL=="ttyAMA1", PROGRAM="/bin/sh -c '\
+	ALIASES=/proc/device-tree/aliases; \
+	if [ -e /dev/ttyAMA0 ]; then \
+		exit 1; \
+	elif cmp -s $$ALIASES/uart0 $$ALIASES/serial0; then \
+		echo 0;\
+	elif cmp -s $$ALIASES/uart0 $$ALIASES/serial1; then \
+		echo 1; \
+	else \
+		exit 1; \
+	fi\
+'", SYMLINK+="serial%c"
+
+KERNEL=="ttyS0", PROGRAM="/bin/sh -c '\
+	ALIASES=/proc/device-tree/aliases; \
+	if cmp -s $$ALIASES/uart1 $$ALIASES/serial0; then \
+		echo 0; \
+	elif cmp -s $$ALIASES/uart1 $$ALIASES/serial1; then \
+		echo 1; \
+	else \
+		exit 1; \
+	fi \
+'", SYMLINK+="serial%c"
+
+ACTION=="add", SUBSYSTEM=="vtconsole", KERNEL=="vtcon1", RUN+="/bin/sh -c '\
+	if echo RPi-Sense FB | cmp -s /sys/class/graphics/fb0/name; then \
+		echo 0 > /sys$devpath/bind; \
+	fi; \
+'"
+
+
+=== ESPEAK-NG 
+  - Not installing python3-espeak or speech-dispatcher-espeak-ng (installs pulseaudio)
+$ sudo apt-get install -y espeak-ng
+$ espeak-ng "Hello"
+  - if want python interface to espeak-ng:
+    $ pip3 install py-espeak-ng
+
+
+==== FULL POWEROFF FOR CLEAN TEST
+$ sudo shutdown -h now
+
+Boot up in GoPiGo3
+
+$ ssh pi@X.X.X.X
+
+
+=== Test GoPiGo Functions
+$ cd ~
+$ python3 Dexter/GoPiGo3/Software/Python/Examples/Read_Info.py
+$ python3 Dexter/GoPiGo3/Software/Python/Examples/LED.py
+$ python3 Dexter/GoPiGo3/Software/Python/Examples/easy_Distance_Sensor.py
+$ python3 Dexter/DI_Sensors/Python/Examples/IMUSensor.py
+
+$ python3 Dexter/GoPiGo3/Software/Python/Examples/Servo.py
+$ python3 Dexter/GoPiGo3/Software/Python/Examples/Motor_Turn.py
+
+=== BENCHMARK RPi3B (1.2GHz Max Clock)
+
+mkdir benchmark
+cd benchmark
+wget https://raw.githubusercontent.com/aikoncwd/rpi-benchmark/master/rpi-benchmark.sh
+chmod +x rpi-benchmark.sh
+sudo ./rpi-benchmark.sh
+
+Raspberry Pi Benchmark Test
+Author: AikonCWD
+Version: 3.0
+
+temp=41.9'C
+arm_freq=1200
+arm_freq_min=600
+core_freq=400
+sdram_freq=450
+gpu_freq=300
+sd_clock=50.000 MHz
+
+Running InternetSpeed test...
+Ping: 30.353 ms
+Download: 44.29 Mbit/s
+Upload: 12.07 Mbit/s
+
+Running CPU test...
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+ total time: 10.0007s
+ min: 0.67
+ avg: 0.69
+ max: 16.72
+temp=47.8'C
+
+Running THREADS test...
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+ total time: 10.0108s
+ min: 17.27
+ avg: 17.91
+ max: 27.30
+temp=53.7'C
+
+Running MEMORY test...
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+3072.00 MiB transferred (3930.79 MiB/sec)
+ total time: 0.7757s
+ min: 0.00
+ avg: 0.00
+ max: 0.18
+temp=54.8'C
+
+Running HDPARM test...
+ HDIO_DRIVE_CMD(identify) failed: Invalid argument
+ Timing buffered disk reads:  68 MB in  3.01 seconds =  22.57 MB/sec
+temp=48.3'C
+
+Running DD WRITE test...
+536870912 bytes (537 MB, 512 MiB) copied, 30.0987 s, 17.8 MB/s
+temp=44.5'C
+
+Running DD READ test...
+536870912 bytes (537 MB, 512 MiB) copied, 22.8161 s, 23.5 MB/s
+temp=42.9'C
+
+AikonCWD's rpi-benchmark completed!
+
+
+=====  Benchmark on RPi3B+ (1.4GHz max clock)
+Raspberry Pi Benchmark Test
+Author: AikonCWD
+Version: 3.0
+
+temp=41.9'C
+arm_freq=1400
+arm_freq_min=600
+core_freq=400
+sdram_freq=450
+gpu_freq=300
+sd_clock=50.000 MHz
+
+Running InternetSpeed test...
+Ping: 31.447 ms
+Download: 53.76 Mbit/s
+Upload: 12.05 Mbit/s
+
+Running CPU test...
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+ total time: 10.0006s
+ min: 0.57
+ avg: 0.59
+ max: 3.44
+temp=46.2'C
+
+Running THREADS test...
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+ total time: 10.0086s
+ min: 14.66
+ avg: 15.11
+ max: 18.24
+temp=50.5'C
+
+Running MEMORY test...
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+3072.00 MiB transferred (4617.47 MiB/sec)
+ total time: 0.6601s
+ min: 0.00
+ avg: 0.00
+ max: 2.79
+temp=49.9'C
+
+Running HDPARM test...
+ HDIO_DRIVE_CMD(identify) failed: Invalid argument
+ Timing buffered disk reads:  68 MB in  3.02 seconds =  22.51 MB/sec
+temp=44.5'C
+
+Running DD WRITE test...
+536870912 bytes (537 MB, 512 MiB) copied, 29.4304 s, 18.2 MB/s
+temp=43.5'C
+
+Running DD READ test...
+536870912 bytes (537 MB, 512 MiB) copied, 22.8237 s, 23.5 MB/s
+temp=42.9'C
+
+AikonCWD's rpi-benchmark completed!
+
+
+==== SETUP PICAMERA
+
+
+sudo pip3 install git+https://github.com/waveform80/picamera
+sudo apt-get install --reinstall libraspberrypi0 libraspberrypi-dev libraspberrypi-bin
+sudo vcgencmd get_camera
+
+Added to /etc/udev/rules.d/99-com.rules:
+SUBSYSTEM=="vchiq", GROUP="video", MODE="0660"
+
+added to end of /boot/firmware/config.txt
+start_x=1
+gpu_mem=128
+
+sudo reboot
+sudo vcgencmd get_camera
+supported=1 detected=1    ???
+
+
+raspistill -v -o test.jpg
+
+
+==== if not - try latest kernel
+
+sudo curl -L --output /usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update && sudo chmod +x /usr/bin/rpi-update
+
+sudo rpi-update
+WARNING: This update bumps to rpi-5.10.y linux tree
+See: https://www.raspberrypi.org/forums/viewtopic.php?f=29&t=288234
+your firmware was successfully updated to 85bda3d8fd6a8b70d189aefd9234440ca99cb81c
+
+=== To restore to stable kernel:
+apt search raspberry  (raspberrypi-kernel/stable)
+sudo apt --reinstall install raspberrypi-kernel/stable
+sudo sync
+sudo reboot
+
+======= DISABLE IPv6 
+(To see if this is the cause of "incomplete" WiFi sign-in blocking remote access)
+Reference: https://itsfoss.com/disable-ipv6-ubuntu-linux/
+
+* Add to bottom of /etc/sysctl.conf
+############ Added by Alan: DISABLE IPv6 #########################
+# Reference: https://itsfoss.com/disable-ipv6-ubuntu-linux/
+# Don't forget to sudo sysctl -p
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.default.disable_ipv6=1
+net.ipv6.conf.lo.disable_ipv6=1
+
+* sudo sysctl -p
+
+* check with "ip a" should not see:
+    inet6 xxxx::xxxx:xxxx:xxxx:xxx/64 scope link 
+       valid_lft forever preferred_lft forever
+
+(did so continue..) 
+
+
+* create /etc/rc.local
+#!/bin/bash
+# FILE: /etc/rc.local
+#
+# PURPOSE: DISABLE IPv6
+# Reference: https://itsfoss.com/disable-ipv6-ubuntu-linux/
+
+/etc/sysctl.d
+/etc/init.d/procps restart
+
+exit 0
+
+
+* sudo chmod 755 /etc/rc.local
+
+* shutdown, reboot
+
+* check with "ip a" should not see:
+    inet6 xxxx::xxxx:xxxx:xxxx:xxx/64 scope link 
+       valid_lft forever preferred_lft forever
+
+
