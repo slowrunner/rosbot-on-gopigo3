@@ -134,3 +134,5 @@ Expanded mutex protected Methods Implemented:
  - imu.readAndPrint()                     # read and print with options for num times, delay, and EOL
 
 ```
+
+Available on PyPi:  https://pypi.org/project/imu4gopigo3ros/
