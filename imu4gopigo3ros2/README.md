@@ -135,4 +135,8 @@ Expanded mutex protected Methods Implemented:
 
 ```
 
-Available on PyPi:  https://pypi.org/project/imu4gopigo3ros/
+Available on PyPi:  
+  Python2:  https://pypi.org/project/imu4gopigo3ros/
+  Python3:  https://pypi.org/project/imu4gopigo3ros2/
+  
+  
