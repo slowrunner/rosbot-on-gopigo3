@@ -4,7 +4,7 @@ GoPiGo3 project to monitor battery voltage, and generate plot a "life"
 
 Example battery till shutdown plot:  
 
-<img src="battery/battV/pic/battLife-20210728-1212.png" width="60%">  
+<img src="battV/pic/battLife-20210728-1212.png" width="60%">  
 
 **Introduction:**  
 
