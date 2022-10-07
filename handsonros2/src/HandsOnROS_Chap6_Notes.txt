@@ -1,0 +1,883 @@
+Hands On ROS Chapter 6 Notes
+
+FILE:  /Volumes/Samsung_T5/PiStuff/ROSbot/HandsOnROS/HandsOnROS_Chap6_Notes.txt
+
+BOOK: "Hands-On ROS for Robotics Programming", Bernardo R. Japon, Packt Publishing, 2020
+
+SUMMARY OF CHAPTER 6 MIGRATION:
+- 
+
+=== LOG IN AS pi (for all ROSbot Dave stuff)
+
+
+=== TEST
+
+* INSTALL DEMO NODES (not installed by ros-foxy-ros-base )
+
+sudo apt install ros-foxy-demo-nodes-py
+sudo apt install ros-foxy-demo-nodes-cpp
+
+
+* In first ssh session:
+source /opt/ros/foxy/setup.bash
+ros2 run demo_nodes_cpp talker
+
+* Open a second ssh session
+
+source /opt/ros/foxy/setup.bash
+ros2 run demo_nodes_py listener
+
+NOTE:  with only the talker running: 15 minute load: 0.09
+
+=== TEST ROS COMMUNICATION ACROSS NETWORK
+https://docs.ros.org/en/foxy/Guides/Installation-Troubleshooting.html#enable-multicast
+
+S1: ros2 multicast receive
+S2: ros2 multicast send
+
+S2: ros2 multicast receive
+S1: ros2 multicast send
+
+NOTE:  Only to-VM is working for me, to-ROSbot is not received BUT
+       ros2 run demo_nodes_cpp/py talker/listener works both ways!
+       (only after running update/upgrade on both Ubuntu systems)
+
+pi@ROSbot:~/rosbot-on-gopigo3$ ros2 run demo_nodes_cpp listener
+[INFO] [1625930607.244627442] [listener]: I heard: [Hello World: 9]
+[INFO] [1625930608.245326225] [listener]: I heard: [Hello World: 10]
+[INFO] [1625930609.245479175] [listener]: I heard: [Hello World: 11]
+[INFO] [1625930610.244978271] [listener]: I heard: [Hello World: 12]
+[INFO] [1625930611.245139866] [listener]: I heard: [Hello World: 13]
+[INFO] [1625930612.245483542] [listener]: I heard: [Hello World: 14]
+
+ubuntu@rosdesk:~/handsonros2$ ros2 run demo_nodes_cpp listener
+[INFO] [1625930576.490056884] [listener]: I heard: [Hello World: 1]
+[INFO] [1625930577.489776977] [listener]: I heard: [Hello World: 2]
+[INFO] [1625930578.489909352] [listener]: I heard: [Hello World: 3]
+[INFO] [1625930579.489984629] [listener]: I heard: [Hello World: 4]
+[INFO] [1625930580.489982903] [listener]: I heard: [Hello World: 5]
+[INFO] [1625930581.490141665] [listener]: I heard: [Hello World: 6]
+
+
+=== BRING DOWN BOOK HANDS-ON-ROS-FOR-ROBOTICS-PROGRAMMING
+cd ~
+git clone https://github.com/PacktPublishing/Hands-On-ROS-for-Robotics-Programming.git
+
+
+
+=== CLONE ROS1 gopigo3_node to ROSbot under HANDS-ON-ROS book
+
+cd ~/Hands-On_ROS-for-Robotics-Programming/
+git clone https://github.com/ros-gopigo/gopigo3_node.git
+
+NOTE: the book uses ros-gopigo for chapter 3, and mentions pkg_mygopigo3 in chapter 6, 
+      The later has some important corrections in the transform publisher.
+      Should have started with Chapter6 version pkg_mygopigo/gopigo3_driver.py
+      (Merged the changes into my gopigo3_node.py)
+
+=== CREATE handsonros2 ROS2 WORKSPACE
+
+cd ~/rosbot-on-gopigo/
+git clone https://github.com/slowrunner/handsonros2.git
+
+=== CREATE ROS2-GOPIGO3-NODE
+
+* Create the ROS2 package and Python package  (convention pkg names all lower case)
+ros2 pkg create --build-type ament_python ros2_gopigo3_node
+
+* edit description, maintainer, etc in package.xml and setup.py
+
+package.xml:
+
+  <description>ROS2 Version of https://github.com/ros-gopigo/gopigo3_node"</description>
+  <maintainer email="slowrunner@users.noreply.github.com">slowrunner</maintainer>
+  <license>Apache License 2.0</license>
+
+
+setup.py:
+    maintainer='slowrunner',
+    maintainer_email='slowrunner@users.noreply.github.com',
+    description='ROS2 Version of https://github.com/ros-gopigo/gopigo3_node',
+    license='Apache License 2.0',
+
+
+* run rosdep (in root of workspace) to check for missing dependencies before building
+cd ~/rosbot-on-gopigo3/handsonros2
+rosdep install -i --from-path src
+
+* still in root of ws, build new package
+colcon build --packages-select ros2_gopigo3_node
+
+* source setup files
+. install/setup.bash
+
+
+=== BASIC DISTANCE SENSOR NODE
+colcon_cd ros2_gopigo3_node 
+
+cd ros2_gopigo3_node
+
+* copy in chapter3 topic_pub_node 
+wget https://github.com/slowrunner/handsonros2/blob/main/src/chapter3_ros2_basics/chapter3_ros2_basics/topic_pub_node.py
+
+mv topic_pub_node.py distance_sensor.py
+
+* nano distance_sensor.py  
+  change msg to Float32, add EasyDistanceSensor code
+
+* nano package.xml - add
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+* nano setup.py to add entrypoint
+    entry_points={
+        'console_scripts': [
+            'distance_sensor = ros2_gopigo3_node.distance_sensor:main',
+
+        ],
+
+=== BUILD DISTANCE_SENSOR NODE
+
+cd ../..   (~/rosbot-on-gopigo3/handsonros2)
+
+rosdep install -i --from-path src
+colcon build --packages-select ros2_gopigo3_node
+
+ros2 run ros2_gopigo3_node distance_sensor
+
+
+==== CUSTOM MSGS for ROS2 GOPIGO3 NODE
+
+custom messages need to be in their own package (to make interface available to all users), 
+custom messages can only be built with ament_cmake - cannot build with python
+
+cd ~/rosbot-on-gopigo2/handsonros2/src
+ros2 pkg create --build-type ament_cmake ros2_gopigo3_msg
+cd ros2_gopigo3_msg
+
+wget -r https://raw.githubusercontent.com/PacktPublishing/Hands-On-ROS-for-Robotics-Programming/tree/master/Chapter6_ROS_programming/pkg_mygopigo/srv
+
+mkdir msg
+cd msg
+
+wget -https://raw.githubusercontent.com/PacktPublishing/Hands-On-ROS-for-Robotics-Programming/master/Chapter6_ROS_programming/pkg_mygopigo/msg/MotorStatus.msg
+
+wget -https://raw.githubusercontent.com/PacktPublishing/Hands-On-ROS-for-Robotics-Programming/master/Chapter6_ROS_programming/pkg_mygopigo/msg/MotorStatusLR.msg
+
+
+* edit CMakeList.txt
+
+find_package(rosidl_default_generators REQUIRED)
+find_packages(std_msgs REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/MotorStatus.msg"
+  "msg/MotorStatusLR.msg"
+  "srv/SPI.srv"
+  DEPENDANCIES std_msgs
+ )
+
+
+
+edit package.xml
+- add desc/maintainer/license
+- add:
+  <build_depend>rosidl_default_generators</build_depend>
+
+  <exec_depend>rosidl_default_runtime</exec_depend>
+
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+
+* build
+- colcon build --packages-select ros2_gopigo3_msg
+- source install/setup.py
+
+
+* Confirm interface created:
+. install/setup.bash
+pi@ROSbot:~/rosbot-on-gopigo3/handsonros2$ ros2 interface show ros2_gopigo3_msg/msg/MotorStatus
+bool low_voltage
+bool overloaded
+int8 power      # PWM duty cycle -100 ... 100
+float32 encoder # degree
+float32 speed   # degree per second
+
+$ ros2 interface show ros2_gopigo3_msg/msg/MotorStatusLR
+std_msgs/Header header
+MotorStatus left
+MotorStatus right
+
+* to use in ros2_gopigo3_node
+
+from ros2_gopigo3_msg import MotorStatus,MotorStatusLR
+from ros2_gopigo3_msg import SPI,SPIResponse
+
+add to package.xml of ros2_gopigo3_node:
+  <exec_depend>ros2_node_msg</exec_depend>
+
+
+
+* MANUALLY INSTALL transforms3d to get tf_transformation for quaternion_about_axis
+sudo pip3 install transfors3d
+
+add to package.xml:
+  <exec_depend>tr_transformations</exec_depend>
+
+
+
+
+==== RUNNING /gopigo3_node
+
+cd ~/rosbot-on-gopigo3/handsonros2
+source install/setup.bash
+ros2 run ros2_gopigo3_node gopigo3_node
+
+
+==== TESTING ROS2 /gopigo3_node
+
+== What nodes are runnning
+$ ros2 node list
+/gopigo3_node
+
+== Info about a running node
+
+$ ros2 node info /gopigo3_node
+/gopigo3_node
+  Subscribers:
+    /cmd_vel: geometry_msgs/msg/Twist
+    /led/blinker/left: std_msgs/msg/UInt8
+    /led/blinker/right: std_msgs/msg/UInt8
+    /led/eye/left: std_msgs/msg/ColorRGBA
+    /led/eye/right: std_msgs/msg/ColorRGBA
+    /led/wifi: std_msgs/msg/ColorRGBA
+    /motor/dps/left: std_msgs/msg/Int16
+    /motor/dps/right: std_msgs/msg/Int16
+    /motor/position/left: std_msgs/msg/Int16
+    /motor/position/right: std_msgs/msg/Int16
+    /motor/pwm/left: std_msgs/msg/Int8
+    /motor/pwm/right: std_msgs/msg/Int8
+    /servo/position/S1: std_msgs/msg/Float64
+    /servo/position/S2: std_msgs/msg/Float64
+    /servo/pulse_width/S1: std_msgs/msg/Int16
+    /servo/pulse_width/S2: std_msgs/msg/Int16
+  Publishers:
+    /battery_voltage: std_msgs/msg/Float64
+    /joint_state: sensor_msgs/msg/JointState
+    /motor/encoder/left: std_msgs/msg/Float64
+    /motor/encoder/right: std_msgs/msg/Float64
+    /motor/status: ros2_gopigo3_msg/msg/MotorStatusLR
+    /odom: nav_msgs/msg/Odometry
+    /parameter_events: rcl_interfaces/msg/ParameterEvent
+    /rosout: rcl_interfaces/msg/Log
+    /tf: tf2_msgs/msg/TFMessage
+  Service Servers:
+    /gopigo3_node/describe_parameters: rcl_interfaces/srv/DescribeParameters
+    /gopigo3_node/get_parameter_types: rcl_interfaces/srv/GetParameterTypes
+    /gopigo3_node/get_parameters: rcl_interfaces/srv/GetParameters
+    /gopigo3_node/list_parameters: rcl_interfaces/srv/ListParameters
+    /gopigo3_node/set_parameters: rcl_interfaces/srv/SetParameters
+    /gopigo3_node/set_parameters_atomically: rcl_interfaces/srv/SetParametersAtomically
+    /power/off: std_srvs/srv/Trigger
+    /power/on: std_srvs/srv/Trigger
+    /reset: std_srvs/srv/Trigger
+    /spi: ros2_gopigo3_msg/srv/SPI
+  Service Clients:
+
+  Action Servers:
+
+  Action Clients:
+
+
+== Active topics
+$ ros2 topic list
+/battery_voltage
+/cmd_vel
+/joint_state
+/led/blinker/left
+/led/blinker/right
+/led/eye/left
+/led/eye/right
+/led/wifi
+/motor/dps/left
+/motor/dps/right
+/motor/encoder/left
+/motor/encoder/right
+/motor/position/left
+/motor/position/right
+/motor/pwm/left
+/motor/pwm/right
+/motor/status
+/odom
+/parameter_events
+/rosout
+/servo/position/S1
+/servo/position/S2
+/servo/pulse_width/S1
+/servo/pulse_width/S2
+/tf
+
+
+=== TOPIC TYPES
+$ ros2 topic list -t
+
+
+
+
+== /battery_voltage
+
+
+$ ros2 topic echo /battery_voltage
+data: 11.604999999999999
+---
+data: 11.562
+---
+data: 11.613
+---
+data: 11.578999999999999
+---
+
+=== SHOW TOPIC TYPE 
+$ ros2 topic info /motor/status
+
+$ ros2 topic info /motor/status -t
+
+== /motor/encoder/left /right
+$ ros2 topic echo /motor/encoder/left
+$ ros2 topic echo /motor/encoder/right
+data: 0.0
+---
+
+
+=== MOTOR STATUS
+
+$ ros2 topic type /motor/status
+ros2_gopigo3_msg/msg/MotorStatusLR
+
+$ ros2 interface show ros2_gopigo3_msg/msg/MotorStatusLR
+std_msgs/Header header
+MotorStatus left
+MotorStatus right
+
+$ ros2 interface show ros2_gopigo3_msg/msg/MotorStatus
+bool low_voltage
+bool overloaded
+int8 power      # PWM duty cycle -100 ... 100
+float32 encoder # degree
+float32 speed   # degree per second
+
+$ ros2 topic echo /motor/status -n 1
+header:
+  stamp:
+    sec: 1626559594
+    nanosec: 609979914
+  frame_id: ''
+left:
+  low_voltage: false
+  overloaded: false
+  power: -128
+  encoder: 0.0
+  speed: 0.0
+right:
+  low_voltage: false
+  overloaded: false
+  power: -128
+  encoder: 0.0
+  speed: 0.0
+---
+
+
+=== ODOMETRY
+
+$ ros2 topic echo /odom
+header:
+  stamp:
+    sec: 1626559079
+    nanosec: 612117930
+  frame_id: odom
+child_frame_id: base_link
+pose:
+  pose:
+    position:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    orientation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+  covariance:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+twist:
+  twist:
+    linear:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    angular:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+  covariance:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+---
+
+
+==== TF TRANSFORMS
+
+$ ros2 topic echo /tf
+transforms:
+- header:
+    stamp:
+      sec: 1626558472
+      nanosec: 613736754
+    frame_id: world
+  child_frame_id: gopigo
+  transform:
+    translation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    rotation:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      w: 1.0
+---
+
+
+
+==== TELEOP KEYBOARD
+
+cd ~/rosbot-on-gopigo3/handsonros2/src
+
+git clone https://github.com/ros2/teleop_twist_keyboard.git
+
+cd ..
+
+colcon build --packages-select teleop_twist_keyboard
+
+. install/setup.bash
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+
+This node takes keypresses from the keyboard and publishes them
+as Twist messages. It works best with a US keyboard layout.
+---------------------------
+Moving around:
+   u    i    o
+   j    k    l
+   m    ,    .
+
+For Holonomic mode (strafing), hold down the shift key:
+---------------------------
+   U    I    O
+   J    K    L
+   M    <    >
+
+t : up (+z)
+b : down (-z)
+
+anything else : stop
+
+q/z : increase/decrease max speeds by 10%
+w/x : increase/decrease only linear speed by 10%
+e/c : increase/decrease only angular speed by 10%
+
+CTRL-C to quit
+
+currently:	speed 0.5	turn 1.0 
+
+Test on 9/26/2021  max linear x: 0.087 m/s  max angular z: 1.6 rad/sec ~ 90 Deg/Sec turning
+
+=== Updated /Dexter software to get gpg3_config.json handling by gopigo3.GoPiGo3() class
+
+=== Testing node using updated GoPiGo3 class that is gpg_config.json aware
+
+$ more ~/Dexter/gpg3_config.json 
+{"wheel-diameter": 66.77, "wheel-base-width": 106.14, "ticks": 16, "motor_gear_ratio": 120}
+
+Used teleop_twist_keyboard for testing:
+- "x" key to decrease linear speed to 0.1 m/s (~4 in/s or 172 dps)
+- Use 1716 degrees / meter for conversions
+- Use 42" = 1.067 meters
+- 150dps =  0.087m/s = approx 3.4 in/s
+- Use "i" key to move fwd, "k" to stop, "<" to move bwd
+- Use "j" or "L" key to spin cw or ccw
+- Load with gopigo3 node, teleop, /odom topic echo 
+- Tested approximately 42" (1.067m) travel of one floor board length: /odom reported 1.058m for an 8mm difference.  
+
+- Tested approximately 360 deg turn:  /odom reported approx -1 deg heading change and it looked more like +1 degree, which would seem to be about 2 degree error.
+ 
+
+=== Testing with topic pub
+
+- Spin at 1 rad/s (57 DPS)
+  ros2 topic pub /cmd_vel geometry_msgs/Twist 'angular: {z: 1}'
+
+- Stop angular motion
+  ros2 topic pub /cmd_vel geometry_msgs/Twist 'angular: {z: 0}'
+
+- Drive forward at 150DPS 0.087m/s ~ 3.4in/sec
+  ros2 topic pub /cmd_vel geometry_msgs/Twist 'linear: {x: .087}'
+
+- Stop forward/backward motion
+  ros2 topic pub /cmd_vel geometry_msgs/Twist 'linear: {x: 0}'
+
+- left/right blinkers
+
+```
+  ros2 interface show ros2_gopigo3_node/msg/led/blinker/left
+  # This was originally provided as an example message.
+  # It is deprecated as of Foxy
+  # It is recommended to create your own semantically meaningful message.
+  # However if you would like to continue using this please use the equivalent in example_msgs.
+
+  uint8 data
+```
+  - on:  ros2 topic pub /led/blinker/left std_msgs/msg/UInt8 '{data: 255}'
+  - off: ros2 topic pub /led/blinker/left std_msgs/msg/UInt8 '{data: 0}'
+  - on:  ros2 topic pub /led/blinker/right std_msgs/msg/UInt8 '{data: 255}'
+  - off: ros2 topic pub /led/blinker/right std_msgs/msg/UInt8 '{data: 0}'
+
+- led eyes
+  - Show message data: ros2 interface show std_msgs/msg/ColorRGBA
+    float32 r
+    float32 g
+    float32 b
+    float32 a
+  BUT don't try to pass an a value for some reason.
+
+  - left on red: ros2 topic pub /led/eye/left std_msgs/msg/ColorRGBA '{r: 255.0, g: 0.0, b: 0.0}'
+  - left off:    ros2 topic pub /led/eye/left std_msgs/msg/ColorRGBA '{r: 0.0, g: 0.0, b: 0.0}'
+  - right on blue: ros2 topic pub /led/eye/right std_msgs/msg/ColorRGBA '{r: 0.0, g: 100.0, b: 100.0}'
+  - right off: ros2 topic pub /led/eye/right std_msgs/msg/ColorRGBA '{r: 0.0, g: 0.0, b: 0.0}'
+
+- led wifi
+  - on blue: ros2 topic pub /led/wifi std_msgs/msg/ColorRGBA '{r: 0.0, g: 0.0, b: 100.0}'
+  - off:     ros2 topic pub /led/wifi std_msgs/msg/ColorRGBA '{r: 0.0, g: 0.0, b: 0.0}'
+
+
+===  Starting and Stoping gopigo3_node
+
+$ ros2 run ros2_gopigo3_node gopigo3_node
+
+$ killall gopigo3_node
+
+
+=== SERVO
+ros2 topic info /servo/position/S1
+Type std_msgs/msg/Float64
+
+ros2 interface show std_msgs/msg/Float64
+
+ros2 topic pub -t 1 /servo/position/S1  std_msgs/msg/Float64 '{data: -0.785}
+- center servo
+ros2 topic pub -1 /servo/position/S1  std_msgs/msg/Float64 '{data: -0.0}'
+
+
+
+=== MOTOR DPS
+
+    /motor/dps/left: std_msgs/msg/Int16
+    /motor/dps/right: std_msgs/msg/Int16
+
+$ ros2 topic info /motor/dps/left
+Type: std_msgs/msg/Int16
+
+$ ros2 interface show std_msgs/msg/Int16
+# This was originally provided as an example message.
+# It is deprecated as of Foxy
+# It is recommended to create your own semantically meaningful message.
+# However if you would like to continue using this please use the equivalent in example_msgs.
+
+int16 data
+
+ros2 topic pub -t 1 /motor/dps/left  std_msgs/msg/Int16 '{data: 150}'
+ros2 topic pub -t 1 /motor/dps/right  std_msgs/msg/Int16 '{data: -150}'
+
+ros2 topic pub -t 1 /motor/dps/left  std_msgs/msg/Int16 '{data: 0}'
+ros2 topic pub -t 1 /motor/dps/right  std_msgs/msg/Int16 '{data: 0}'
+
+
+==== MOTOR POSITION  Set encoder target position (in degrees)
+- 
+
+    /motor/position/left: std_msgs/msg/Int16
+    /motor/position/right: std_msgs/msg/Int16
+
+ros2 echo topi /motor/encoder/right
+---
+data: -9553.0"
+---
+
+pkill -f echo
+
+- one fwd rev is -9553+360 = -9193
+
+ros2 topic pub -t 1 /motor/position/right  std_msgs/msg/Int16 '{data: -9193}'
+
+
+ros2 echo topic /motor/encoder/right
+---
+data: -9191.0
+---
+
+ros2 topic pub -t 1 /motor/position/both std_msgs/msg/Int16 '{data: 45}'
+
+
+
+
+== PWM  -100 to +100 (or -128 for float)
+
+    /motor/pwm/left: std_msgs/msg/Int8
+    /motor/pwm/right: std_msgs/msg/Int8
+
+
+=== Added /odom/reset
+
+$ ros2 interface show std_srvs/srv/Trigger
+---
+bool success   # indicate successful run of triggered service
+string message # informational, e.g. for error messages
+
+
+$ ros2 service call /odom/reset std_srvs/srv/Trigger
+requester: making request: std_srvs.srv.Trigger_Request()
+
+response:
+std_srvs.srv.Trigger_Response(success=True, message='')
+
+
+==== SERVO PARAMETERS
+
+$ ros2 param list
+/gopigo3_node:
+  S1LPW
+  S1RPW
+  use_sim_time
+
+$ ros2 param get /gopigo3_node S1LPW
+Integer value is: 2425
+
+
+$ ros2 param set /gopigo3_node S1LPW 2098
+Set parameter successful
+
+$ ros2 param set /gopigo3_node S1SECTOR 2.443
+Set parameter successful
+
+
+$ ros2 run ros2_gopigo3_node gopigo3_node --ros-args -p S1LPW:=2094 S1RPW:=750 -p S1SECTOR=2.443 &
+
+$ ros2 param dump /gopigo3_node
+Saving to:  ./gopigo3_node.yaml
+
+$ more gopigo3_node.yaml 
+/gopigo3_node:
+  ros__parameters:
+    S1LPW: 2098
+    S1RPW: 750
+    S1SECTOR: 2.443
+    S2LPW: 2425
+    S2RPW: 575
+    S2SECTOR: 1.5707963267948966
+    use_sim_time: false
+
+
+$ ros2 param load /gopigo3_node ./gopigo3_node.yaml 
+Set parameter S1LPW successful
+Set parameter S1RPW successful
+Set parameter S1SECTOR successful
+Set parameter S2LPW successful
+Set parameter S2RPW successful
+Set parameter S2SECTOR successful
+Set parameter use_sim_time successful
+
+ros2 run ros2_gopigo3_node gopigo3_node --ros-args --params-file ./src/ros2_gopigo3_node/gopigo3_node_params.yaml &
+
+
+- test servo parameter clipping for SECTOR
+$ ros2 run ros2_gopigo3_node gopigo3_node --ros-args --params-file ./src/ros2_gopigo3_node/gopigo3_node_params.yaml &
+
+$ ros2 topic pub -1 /servo/position/S1  std_msgs/msg/Float64 '{data: -1.57}'
+publisher: beginning loop
+publishing #1: std_msgs.msg.Float64(data=-1.57)
+
+S1LPW: 2098 S1RPW: 750
+S1SECTOR: 2.44 rads
+S2LPW: 2425 S2RPW: 575
+S2SECTOR: 1.57 rads
+set_servo_angle(servo1): angle: -1.570 clipped angle: -1.222  pulse: 750
+
+
+
+
+===== WATCHING GOPIGO3 IN RVIZ2
+# Watching GoPiGo3 Node in Rviz2
+
+- ROSbot Dave:
+```
+
+T1:
+cd ~/rosbot-on-gopigo3/handsonros2
+source install/setup.bash
+ros2 run ros2_gopigo3_node gopigo3_node --ros-args --params-file ./src/ros2_gopigo3_node/ gopigo3_node_params.yaml &
+
+or
+./runit.sh
+
+when done:
+
+./killit.sh
+
+
+T2:  (OPTIONAL - can use rqt->Robot_Steering plugin instead)
+cd ~/rosbot-on-gopigo3/handsonros2
+source install/setup.bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+
+x till speed is 0.1m/s
+
+i fwd
+k stop
+j, l spin left/right
+comma/"<" bwd 
+```
+
+
+- DESKTOP PC: LAUNCH RVIZ2 AND NEEDED PUBLISHERS
+```
+T1: 
+cd ~/handsonros2
+source install/setup.bash
+
+ros2 launch rviz2_basics ros2_gpgMin_rviz2_simple.launch.py
+
+or 
+cd ~/handsonros2
+./launch_rviz2_w_joint_and_robot_pubs.sh
+
+T2:
+rqt
+
+Note: Can use rqt->Plugins->Robot Steering instead of teleop
+
+NOTE:  If wheels do not move with bot, joint_state_publisher is not running.
+
+```
+
+=== ROS BAGs
+See https://github.com/ros2/rosbag2#using-rosbag2
+
+- ros2 bag [record -a | record <topic> ... <topic>] to record
+  -a records all topics
+  -o <name>  names the bag file instead of rosbag2_YYYY_MM_DD-HH_MM_SS/
+- ros2 bag info <file> to see what is in a bag
+- ros2 bag play <bag_file>
+
+To generate csv files. Start a bag play in one shell, and then a topic echo in another (must start the play before the echo)
+
+
+$ ros2 bag info rosbag2_2021_08_28-18_43_25/
+
+Files:             rosbag2_2021_08_28-18_43_25_0.db3
+Bag size:          460.8 KiB
+Storage id:        sqlite3
+Duration:          10.69s
+Start:             Aug 28 2021 18:43:27.995 (1630190607.995)
+End:               Aug 28 2021 18:43:38.64 (1630190618.64)
+Messages:          91
+Topic information: Topic: /scan | Type: sensor_msgs/msg/LaserScan | Count: 91 | Serialization Format: cdr
+
+$ ros2 bag play rosbag2_2021_08_28-18_43_25/
+[INFO] [1630252505.294131771] [rosbag2_storage]: Opened database 'rosbag2_2021_08_28-18_43_25//rosbag2_2021_08_28-18_43_25_0.db3' for READ_ONLY.
+
+----- And in second shell ----
+$ ros2 topic echo --csv --full-length /scan > scan.csv
+
+That method strips off the field identifiers.  
+
+To keep the field identifiers:
+$ ros2 topic echo --full-length /scan > scan.txt
+
+
+==== ROS2 with XML LAUNCH FILES
+see https://index.ros.org/doc/ros2/Tutorials/Launch-files-migration-guide/
+and https://github.com/ros2/demos/tree/master/demo_nodes_cpp/launch/topics
+
+ros2 launch /path/to/file_launch.xml
+
+ros2 launch <package_name> <launch_file.xml>
+
