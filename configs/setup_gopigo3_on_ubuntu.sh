@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# === install gcc and make
+sudo apt install -y gcc
+sudo apt install -y make
+
+# Bring down the code
 sudo git clone -b install_on_ubuntu http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiGo3
 
 sudo curl -kL dexterindustries.com/update_tools | bash -s -- --system-wide --use-python3-exe-too --install-deb-debs --install-python-package
@@ -11,10 +16,6 @@ sudo git clone https://github.com/DexterInd/DI_Sensors.git /home/pi/Dexter/DI_Se
 sudo apt install -y python3-rpi.gpio
 
 sudo apt install -y unzip
-
-# === install gcc and make
-sudo apt install -y gcc
-sudo apt install -y make
 
 # === pigpiod
 
@@ -68,16 +69,12 @@ sudo python3 setup.py install
 sudo cp /home/pi/utils/99-com.rules /etc/udev/rules.d
 
 # === ESPEAK-NG
-echo "To install espeak-ng"
-echo "sudo apt install -y espeak-ng"
-# sudo apt install -y espeak-ng
-echo "To allow python to call espeak-ng"
-echo "sudo pip3 install py-espeak-ng"
-# sudo pip3 install py-espeak-ng
-# espeak-ng "Ok to reboot now"
+sudo apt install -y espeak-ng
+sudo pip3 install py-espeak-ng
+espeak-ng "Ok to reboot now"
 
 echo "Check that the mutex stuff will be available"
 echo "unzip -l /usr/local/lib/python*/dist-packages/Dexter*.egg"
-echo "unzip -l /usr/local/lib/python3.10/dist-packages/Dexter_AutoDetection_and_I2C_Mutex-0.0.0-py3.10.egg"
+unzip -l /usr/local/lib/python3.10/dist-packages/Dexter_AutoDetection_and_I2C_Mutex-0.0.0-py3.10.egg
 
 echo "Done gopigo3 setup - ready for reboot"
