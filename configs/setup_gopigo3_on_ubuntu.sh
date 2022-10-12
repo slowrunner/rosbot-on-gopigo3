@@ -36,18 +36,18 @@ sudo apt install -y unzip
 
 # === pigpiod
 
-# wget https://github.com/joan2937/pigpio/archive/master.zip
-# unzip master.zip
-# cd pigpio-master
-# make
-# sudo make install
-# cd ..
-# rm master.zip
+wget https://github.com/joan2937/pigpio/archive/master.zip
+unzip master.zip
+cd pigpio-master
+make
+sudo make install
+cd ..
+rm master.zip
 
 
 sudo cp /home/pi/pigpiod.service /etc/systemd/system
-# sudo systemctl enable pigpiod.service
-# sudo systemctl start pigpiod.service
+sudo systemctl enable pigpiod.service
+sudo systemctl start pigpiod.service
 systemctl status pigpiod.service
 
 # === setup RFR_Tools
@@ -60,11 +60,11 @@ sudo python3 setup.py install
 
 
 # === wiringPi
-cd /home/pi/Dexter/lib
-git clone https://github.com/DexterInd/wiringPi/
-cd wiringPi
-sudo chmod +x ./build
-sudo ./build
+#cd /home/pi/Dexter/lib
+#git clone https://github.com/DexterInd/wiringPi/
+#cd wiringPi
+#sudo chmod +x ./build
+#sudo ./build
 
 # ==== GPG3_POWER SERVICE ===
 cd ~
@@ -86,6 +86,11 @@ sudo python3 setup.py install
 sudo cp /home/pi/99-com.rules /etc/udev/rules.d
 
 cp /home/pi/Dexter/GoPiGo3/Install/list_of_serial_numbers.pkl /home/pi/Dexter/.list_of_serial_numbers.pkl
+
+python3 /home/pi/Dexter/GoPiGo3/Software/Python/Examples/Read_Info.py
+
+echo "/home/pi/Dexter/gpg3_config.json"
+cat /home/pi/Dexter/gpg3_config.json
 
 # === ESPEAK-NG
 sudo apt install -y espeak-ng
