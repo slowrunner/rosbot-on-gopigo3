@@ -43,7 +43,7 @@ cd ..
 rm master.zip
 
 
-sudo cp /home/pi/utils/pigpiod.service /etc/systemd/system
+sudo cp /home/pi/pigpiod.service /etc/systemd/system
 sudo systemctl enable pigpiod.service
 sudo systemctl start pigpiod.service
 systemctl status pigpiod.service
@@ -81,7 +81,7 @@ sudo python3 setup.py install
 
 # ==== Setup non-root access rules ====
 
-sudo cp /home/pi/utils/99-com.rules /etc/udev/rules.d
+sudo cp /home/pi/99-com.rules /etc/udev/rules.d
 
 # === ESPEAK-NG
 sudo apt install -y espeak-ng
