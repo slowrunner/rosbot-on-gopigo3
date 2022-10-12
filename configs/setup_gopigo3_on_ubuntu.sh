@@ -12,6 +12,10 @@ sudo apt install -y python3-rpi.gpio
 
 sudo apt install -y unzip
 
+# === install gcc and make
+sudo apt install -y gcc
+sudo apt install -y make
+
 # === pigpiod
 
 wget https://github.com/joan2937/pigpio/archive/master.zip
