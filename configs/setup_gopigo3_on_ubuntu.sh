@@ -3,6 +3,7 @@
 # === install gcc and make
 sudo apt install -y gcc
 sudo apt install -y make
+sudo apt install -y python3-dev
 
 sudo chgrp spi /dev/spidev0.0
 sudo chgrp spi /dev/spidev0.1
