@@ -87,23 +87,30 @@ sudo cp /home/pi/99-com.rules /etc/udev/rules.d
 
 cp /home/pi/Dexter/GoPiGo3/Install/list_of_serial_numbers.pkl /home/pi/Dexter/.list_of_serial_numbers.pkl
 
-python3 /home/pi/Dexter/GoPiGo3/Software/Python/Examples/Read_Info.py
-
-
-echo "\n/home/pi/Dexter/gpg3_config.json"
-cat /home/pi/Dexter/gpg3_config.json
-
 # === ESPEAK-NG
 sudo apt install -y espeak-ng
 pip3 install py-espeak-ng
 espeak-ng "Ok to reboot now"
 
-echo "\nCheck that the mutex stuff will be available"
+echo ""
+echo "***************"
+echo "Check that the mutex stuff will be available"
 ls /usr/local/lib/python*/dist-packages/Dexter*
 unzip -l /usr/local/lib/python3.10/dist-packages/Dexter_AutoDetection_and_I2C_Mutex-*-py3.10.egg
 
-echo "\nYou should change the pi password now with $ passwd"
+echo ""
+echo "***************"
+python3 /home/pi/Dexter/GoPiGo3/Software/Python/Examples/Read_Info.py
 
-echo "\n****"
+echo ""
+echo "***************"
+echo "/home/pi/Dexter/gpg3_config.json"
+cat /home/pi/Dexter/gpg3_config.json
+echo ""
+echo "***************"
+echo "You should change the pi password now with $ passwd"
+
+echo ""
+echo "****"
 echo "Done gopigo3 setup - ready for reboot"
 echo "****"
