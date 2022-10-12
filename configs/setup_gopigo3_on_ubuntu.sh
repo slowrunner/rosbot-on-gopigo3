@@ -21,13 +21,14 @@ sudo chmod 770 /sys/class/gpio/unexport
 wget https://raw.githubusercontent.com/slowrunner/rosbot-on-gopigo3/main/configs/pigpiod.service
 wget https://raw.githubusercontent.com/slowrunner/rosbot-on-gopigo3/main/configs/99-com.rules
 
-sudo git clone -b install_on_ubuntu http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiGo3
+# sudo git clone -b install_on_ubuntu http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiGo3
+git clone http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiGo3
 
 sudo curl -kL dexterindustries.com/update_tools | bash -s -- --system-wide --use-python3-exe-too --install-deb-debs --install-python-package
 
 sudo apt install -y --no-install-recommends python3-pip python3-numpy python3-curtsies
 
-sudo git clone https://github.com/DexterInd/DI_Sensors.git /home/pi/Dexter/DI_Sensors
+git clone https://github.com/DexterInd/DI_Sensors.git /home/pi/Dexter/DI_Sensors
 
 sudo apt install -y python3-rpi.gpio
 
@@ -35,18 +36,18 @@ sudo apt install -y unzip
 
 # === pigpiod
 
-wget https://github.com/joan2937/pigpio/archive/master.zip
-unzip master.zip
-cd pigpio-master
-make
-sudo make install
-cd ..
-rm master.zip
+# wget https://github.com/joan2937/pigpio/archive/master.zip
+# unzip master.zip
+# cd pigpio-master
+# make
+# sudo make install
+# cd ..
+# rm master.zip
 
 
 sudo cp /home/pi/pigpiod.service /etc/systemd/system
-sudo systemctl enable pigpiod.service
-sudo systemctl start pigpiod.service
+# sudo systemctl enable pigpiod.service
+# sudo systemctl start pigpiod.service
 systemctl status pigpiod.service
 
 # === setup RFR_Tools
