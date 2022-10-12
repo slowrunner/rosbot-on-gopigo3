@@ -102,6 +102,8 @@ echo "\nCheck that the mutex stuff will be available"
 ls /usr/local/lib/python*/dist-packages/Dexter*
 unzip -l /usr/local/lib/python3.10/dist-packages/Dexter_AutoDetection_and_I2C_Mutex-*-py3.10.egg
 
+echo "\nYou should change the pi password now with $ passwd"
+
 echo "\n****"
 echo "Done gopigo3 setup - ready for reboot"
 echo "****"
