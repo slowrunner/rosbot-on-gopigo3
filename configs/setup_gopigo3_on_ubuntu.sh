@@ -90,7 +90,9 @@ cp /home/pi/Dexter/GoPiGo3/Install/list_of_serial_numbers.pkl /home/pi/Dexter/.l
 # === ESPEAK-NG
 sudo apt install -y espeak-ng
 pip3 install py-espeak-ng
-espeak-ng "Ok to reboot now"
+espeak-ng "Am I alive? Can you hear me?"
+# Install ffmpeg to allow ffplay to play tts from espeak-ng -w file 
+sudo apt install -y ffmpeg
 
 echo ""
 echo "***************"
