@@ -70,7 +70,7 @@ sudo cp /home/pi/utils/99-com.rules /etc/udev/rules.d
 
 # === ESPEAK-NG
 sudo apt install -y espeak-ng
-sudo pip3 install py-espeak-ng
+pip3 install py-espeak-ng
 espeak-ng "Ok to reboot now"
 
 echo "Check that the mutex stuff will be available"
