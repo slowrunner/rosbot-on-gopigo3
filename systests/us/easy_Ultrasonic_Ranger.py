@@ -21,6 +21,8 @@ from easygopigo3 import EasyGoPiGo3
 #    is connected through the GoPiGo3 AD1 or AD2 ports)
 egpg = EasyGoPiGo3()
 
+print("Ignore initial value error msg")
+
 # Create an instance of an UltraSonicSensor class
 my_ultrasonic_sensor = egpg.init_ultrasonic_sensor(port="AD2")
 
