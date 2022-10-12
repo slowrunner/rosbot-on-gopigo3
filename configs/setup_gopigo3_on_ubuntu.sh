@@ -4,6 +4,18 @@
 sudo apt install -y gcc
 sudo apt install -y make
 
+sudo chgrp spi /dev/spidev0.0
+sudo chgrp spi /dev/spidev0.1
+
+sudo chmod 660 /dev/spidev0.0
+sudo chmod 660 /dev/spidev0.1
+
+sudo chgrp gpio /sys/class/gpio/export
+sudo chgrp gpio /sys/class/gpio/unexport
+
+sudo chmod 770 /sys/class/gpio/export
+sudo chmod 770 /sys/class/gpio/unexport
+
 # Bring down the code
 sudo git clone -b install_on_ubuntu http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiGo3
 
