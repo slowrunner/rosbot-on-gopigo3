@@ -84,7 +84,7 @@ sudo python3 setup.py install
 
 sudo cp /home/pi/99-com.rules /etc/udev/rules.d
 
-cp /home/pi/Dexter/Install/list_of_serial_numbers.pkl /home/pi/Dexter/.list_of_serial_numbers.pkl
+cp /home/pi/Dexter/GoPiGo3/Install/list_of_serial_numbers.pkl /home/pi/Dexter/.list_of_serial_numbers.pkl
 
 # === ESPEAK-NG
 sudo apt install -y espeak-ng
