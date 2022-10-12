@@ -17,6 +17,9 @@ sudo chmod 770 /sys/class/gpio/export
 sudo chmod 770 /sys/class/gpio/unexport
 
 # Bring down the code
+wget https://raw.githubusercontent.com/slowrunner/rosbot-on-gopigo3/main/configs/pigpiod.service
+wget https://raw.githubusercontent.com/slowrunner/rosbot-on-gopigo3/main/configs/99-com.rules
+
 sudo git clone -b install_on_ubuntu http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiGo3
 
 sudo curl -kL dexterindustries.com/update_tools | bash -s -- --system-wide --use-python3-exe-too --install-deb-debs --install-python-package
